@@ -51,9 +51,7 @@
   const pivot: Pivot = { x: 150, y: 100 };
 </script>
 
-<div
-  style="min-height: 100vh; width: 100%; background: #0A0D11; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; font-family: 'IBM Plex Mono', monospace; color: #C7D2DA;"
->
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-aero-bg font-mono text-aero-text">
   <AeroBackground />
   <CornerDecorations />
 
@@ -69,7 +67,7 @@
     position="right"
   />
 
-  <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2;">
+  <div class="z-2 flex flex-col items-center gap-2">
     <AirfoilDisplay {angle} {status} {pivot} />
     <AngleGauge {angle} {status} />
     <AngleSlider bind:angle {min} {max} {step} {percent} {status} />
@@ -77,11 +75,3 @@
 
   <BottomLabel text="AoA Control · Module 01" />
 </div>
-
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-
-  :global(*) {
-    box-sizing: border-box;
-  }
-</style>

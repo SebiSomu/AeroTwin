@@ -2,6 +2,6 @@
   export let text: string = "";
 </script>
 
-<div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(199,210,218,0.25);">
+<div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-aero text-aero-muted">
   {text}
 </div>

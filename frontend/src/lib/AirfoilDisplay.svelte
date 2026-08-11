@@ -6,7 +6,12 @@
   export let pivot: Pivot = { x: 150, y: 100 };
 </script>
 
-<svg width="300" height="200" viewBox="0 0 300 200" style="overflow: visible; margin-bottom: 4px;">
+<svg
+  width="300"
+  height="200"
+  viewBox="0 0 300 200"
+  class="mb-1 overflow-visible"
+>
   <line
     x1="10"
     y1={pivot.y}
@@ -53,14 +58,3 @@
   </g>
   <circle cx={pivot.x} cy={pivot.y} r="2.5" fill="#C7D2DA" />
 </svg>
-
-<style>
-  .wing-group {
-    transition: transform 0.12s ease-out;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .wing-group {
-      transition: none !important;
-    }
-  }
-</style>
