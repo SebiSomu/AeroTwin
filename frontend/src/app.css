@@ -2,15 +2,15 @@
 @import "tailwindcss";
 
 @theme {
-  /* ---------- Colors: Aero palette ---------- */
-  --color-aero-bg: #0A0D11;
-  --color-aero-text: #C7D2DA;
-  --color-aero-muted: rgba(199, 210, 218, 0.25);
-  --color-aero-muted-35: rgba(199, 210, 218, 0.35);
-  --color-aero-muted-4: rgba(199, 210, 218, 0.4);
-  --color-aero-muted-45: rgba(199, 210, 218, 0.45);
-  --color-aero-muted-55: rgba(199, 210, 218, 0.55);
-  --color-aero-muted-3: rgba(199, 210, 218, 0.3);
+  /* ---------- Colors: Aero palette (light theme) ---------- */
+  --color-aero-bg: #F4F6F8;
+  --color-aero-text: #0A0D11;
+  --color-aero-muted: rgba(10, 13, 17, 0.25);
+  --color-aero-muted-35: rgba(10, 13, 17, 0.35);
+  --color-aero-muted-4: rgba(10, 13, 17, 0.4);
+  --color-aero-muted-45: rgba(10, 13, 17, 0.45);
+  --color-aero-muted-55: rgba(10, 13, 17, 0.55);
+  --color-aero-muted-3: rgba(10, 13, 17, 0.3);
   --color-aero-blue: #7FA6B3;
   --color-aero-blue-22: rgba(127, 166, 179, 0.22);
   --color-aero-blue-25: rgba(127, 166, 179, 0.25);
@@ -19,16 +19,16 @@
   --color-aero-blue-4: rgba(127, 166, 179, 0.4);
   --color-aero-blue-5: rgba(127, 166, 179, 0.5);
   --color-aero-blue-55: rgba(127, 166, 179, 0.55);
-  --color-aero-blue-g-55: rgba(127, 166, 179, 0.055);
-  --color-aero-blue-g-3: rgba(127, 166, 179, 0.03);
+  --color-aero-blue-g-55: rgba(127, 166, 179, 0.12);
+  --color-aero-blue-g-3: rgba(127, 166, 179, 0.06);
   --color-aero-gold: #C9A15F;
   --color-aero-gold-35: rgba(201, 161, 95, 0.35);
   --color-aero-amber: #E0982E;
   --color-aero-amber-3: rgba(224, 152, 46, 0.3);
   --color-aero-red: #D9584F;
   --color-aero-red-35: rgba(217, 88, 79, 0.35);
-  --color-aero-wire: rgba(199, 210, 218, 0.25);
-  --color-aero-thumb-ring: rgba(255, 255, 255, 0.07);
+  --color-aero-wire: rgba(10, 13, 17, 0.12);
+  --color-aero-thumb-ring: rgba(10, 13, 17, 0.07);
 
   /* ---------- Fonts ---------- */
   --font-mono: 'IBM Plex Mono', monospace;
@@ -121,7 +121,7 @@ body,
   height: 15px;
   margin-top: 0;
   background: var(--thumb-color, var(--color-aero-gold));
-  border: 2px solid var(--color-aero-bg);
+  border: 2px solid var(--color-aero-text);
   box-shadow:
     0 0 0 3px var(--color-aero-thumb-ring),
     0 0 14px var(--thumb-glow, transparent);
@@ -139,7 +139,7 @@ body,
   height: 15px;
   border-radius: 0;
   background: var(--thumb-color, var(--color-aero-gold));
-  border: 2px solid var(--color-aero-bg);
+  border: 2px solid var(--color-aero-text);
   box-shadow:
     0 0 0 3px var(--color-aero-thumb-ring),
     0 0 14px var(--thumb-glow, transparent);
