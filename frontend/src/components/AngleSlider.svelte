@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Status } from "./types";
+  import type { Status } from "../types/types";
 
   export let angle: number = 4;
   export let min: number = -5;

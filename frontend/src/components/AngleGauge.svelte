@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Status } from "./types";
+  import type { Status } from "../types/types";
 
   export let angle: number = 0;
   export let status: Status = { label: "", sub: "", color: "#7FA6B3", glow: "rgba(127,166,179,0.25)" };

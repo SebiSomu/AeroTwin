@@ -1,12 +1,12 @@
 <script lang="ts">
-  import AeroBackground from "./lib/AeroBackground.svelte";
-  import CornerDecorations from "./lib/CornerDecorations.svelte";
-  import TitleBlock from "./lib/TitleBlock.svelte";
-  import AirfoilDisplay from "./lib/AirfoilDisplay.svelte";
-  import AngleGauge from "./lib/AngleGauge.svelte";
-  import AngleSlider from "./lib/AngleSlider.svelte";
-  import BottomLabel from "./lib/BottomLabel.svelte";
-  import type { Status, Pivot } from "./lib/types";
+  import AeroBackground from "./components/AeroBackground.svelte";
+  import CornerDecorations from "./components/CornerDecorations.svelte";
+  import TitleBlock from "./components/TitleBlock.svelte";
+  import AirfoilDisplay from "./components/AirfoilDisplay.svelte";
+  import AngleGauge from "./components/AngleGauge.svelte";
+  import AngleSlider from "./components/AngleSlider.svelte";
+  import BottomLabel from "./components/BottomLabel.svelte";
+  import type { Status, Pivot } from "./types/types";
 
   let angle = $state<number>(4);
   const min: number = -5;
