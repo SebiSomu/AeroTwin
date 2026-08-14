@@ -21,7 +21,7 @@
 
   let angle = $state<number>(DEFAULT_AOA);
   let velocityKmh = $state<number>(120);
-  
+
   // ML Prediction State
   let mlEfficiency = $state<number | null>(null);
   let mlCl = $state<number | null>(null);
@@ -36,12 +36,14 @@
 
   let percent = $derived<number>(((angle - min) / (max - min)) * 100);
 
-  let status = $derived<Status>((() => {
-    if (angle >= 15) return STATUS_STALLED;
-    if (angle >= 12) return STATUS_NEAR_STALL;
-    if (angle >= 3 && angle <= 5) return STATUS_PEAK_EFFICIENCY;
-    return STATUS_LINEAR_REGION;
-  })());
+  let status = $derived<Status>(
+    (() => {
+      if (angle >= 15) return STATUS_STALLED;
+      if (angle >= 12) return STATUS_NEAR_STALL;
+      if (angle >= 3 && angle <= 5) return STATUS_PEAK_EFFICIENCY;
+      return STATUS_LINEAR_REGION;
+    })(),
+  );
 
   const pivot: Pivot = DEFAULT_PIVOT;
 
@@ -49,7 +51,7 @@
   $effect(() => {
     const currentAoA = angle;
     const currentVel = velocityKmh;
-    
+
     fetch("http://localhost:5000/api/v1/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -75,7 +77,9 @@
   });
 </script>
 
-<div class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-aero-bg font-mono text-aero-text">
+<div
+  class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-aero-bg font-mono text-aero-text"
+>
   <AeroBackground />
   <CornerDecorations />
 
@@ -93,22 +97,25 @@
 
   <!-- ── Main layout ───────────────────────────────────────────────── -->
   <div class="z-2 flex flex-col items-center gap-3 px-4">
-
     <!-- Row 1: 3D viewer centred; angle panel absolutely floated right -->
     <div class="relative flex justify-center">
       <SpoilerViewer {angle} />
 
       <!-- Angle panel — absolute so it never pushes the viewer off-centre -->
-      <div class="
+      <div
+        class="
         absolute -right-44 top-1/2 -translate-y-1/2
         flex w-40 flex-col items-start gap-1
         border-l border-aero-blue-25 pl-4
         max-[820px]:static max-[820px]:translate-y-0
         max-[820px]:border-l-0 max-[820px]:border-t max-[820px]:border-aero-blue-25
         max-[820px]:pt-3 max-[820px]:items-center max-[820px]:w-full
-      ">
+      "
+      >
         <!-- Label -->
-        <p class="font-mono text-[9px] uppercase tracking-[0.2em] text-aero-muted-4 mb-0.5">
+        <p
+          class="font-mono text-[9px] uppercase tracking-[0.2em] text-aero-muted-4 mb-0.5"
+        >
           Angle of Attack
         </p>
 
@@ -141,23 +148,49 @@
         </p>
 
         <!-- ML Efficiency & Telemetry Box -->
-        <div class="mt-2.5 flex flex-col gap-1 border-t border-aero-blue-25 pt-2 w-full">
-          <div class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4">
+        <div
+          class="mt-2.5 flex flex-col gap-1 border-t border-aero-blue-25 pt-2 w-full"
+        >
+          <div
+            class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
+          >
             <span>Efficiency (L/D)</span>
-            <span class="font-bold text-aero-text">{mlEfficiency !== null ? mlEfficiency.toFixed(1) : '30.4'}</span>
+            <span class="font-bold text-aero-text"
+              >{mlEfficiency !== null ? mlEfficiency.toFixed(1) : "30.4"}</span
+            >
           </div>
-          <div class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4">
+          <div
+            class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
+          >
             <span>Downforce</span>
-            <span class="font-bold text-aero-text">{mlDownforceN !== null ? mlDownforceN.toFixed(0) + ' N' : '164 N'}</span>
+            <span class="font-bold text-aero-text"
+              >{mlDownforceN !== null
+                ? mlDownforceN.toFixed(0) + " N"
+                : "164 N"}</span
+            >
           </div>
-          <div class="mt-1 flex items-center gap-1.5 text-[8px] uppercase tracking-[0.14em]">
-            <span class="h-1.5 w-1.5 rounded-full {isApiOnline ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-red-400'}"></span>
-            <span class="{isApiOnline ? 'text-emerald-700 font-semibold' : 'text-aero-muted-4'}">{isApiOnline ? 'SERVER RUNNING' : 'SERVER OFFLINE'}</span>
+          <div
+            class="mt-1 flex items-center gap-1.5 text-[8px] uppercase tracking-[0.14em]"
+          >
+            <span
+              class="h-1.5 w-1.5 rounded-full {isApiOnline
+                ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]'
+                : 'bg-red-400'}"
+            ></span>
+            <span
+              class={isApiOnline
+                ? "text-emerald-700 font-semibold"
+                : "text-aero-muted-4"}
+              >{isApiOnline ? "SERVER RUNNING" : "SERVER OFFLINE"}</span
+            >
           </div>
         </div>
 
         <!-- Mini airfoil — scaled down, clipped -->
-        <div class="mt-2 overflow-hidden" style="width:186px; height:124px; transform:scale(0.62); transform-origin:left top;">
+        <div
+          class="mt-2 overflow-hidden"
+          style="width:186px; height:124px; transform:scale(0.62); transform-origin:left top;"
+        >
           <AirfoilDisplay {angle} {status} {pivot} />
         </div>
       </div>

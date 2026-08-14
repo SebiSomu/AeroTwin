@@ -6,8 +6,13 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error
 
-AIR_DENSITY = 1.225
-REFERENCE_WING_AREA = 0.45
+from constants import (
+    AIR_DENSITY,
+    REFERENCE_WING_AREA,
+    DEFAULT_DATASET_PATH,
+    DEFAULT_VELOCITY_KMH,
+    STALL_AOA_THRESHOLD_DEG,
+)
 
 class AerodynamicSurrogateModel:
     """
@@ -16,8 +21,7 @@ class AerodynamicSurrogateModel:
     """
     def __init__(self, dataset_path: str = None):
         if dataset_path is None:
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            dataset_path = os.path.join(base_dir, "naca0012_polars.csv")
+            dataset_path = DEFAULT_DATASET_PATH
             
         self.dataset_path = dataset_path
         self.model_cl = None
@@ -59,16 +63,9 @@ class AerodynamicSurrogateModel:
         print(f"[ML Model] Training complete.")
         print(f"[ML Model] CL RMSE: {self.rmse_cl:.4f} | CD RMSE: {self.rmse_cd:.4f}")
 
-    def predict(self, angle_of_attack: float, velocity_kmh: float = 120.0) -> dict:
+    def predict(self, angle_of_attack: float, velocity_kmh: float = DEFAULT_VELOCITY_KMH) -> dict:
         """
         Predict aerodynamic efficiency (CL / CD) and aerodynamic forces.
-        
-        Parameters:
-            angle_of_attack (float): AoA in degrees (-5.0 to +20.0)
-            velocity_kmh (float): Vehicle speed in km/h (default 120 km/h)
-            
-        Returns:
-            dict containing cl, cd, efficiency, downforce_n, drag_n, is_stalled
         """
         if not self.is_trained:
             raise RuntimeError("ML Surrogate Model is not trained yet.")
@@ -86,7 +83,7 @@ class AerodynamicSurrogateModel:
         downforce_n = dynamic_pressure * REFERENCE_WING_AREA * cl
         drag_n = dynamic_pressure * REFERENCE_WING_AREA * cd
         
-        is_stalled = angle_of_attack >= 15.0
+        is_stalled = angle_of_attack >= STALL_AOA_THRESHOLD_DEG
         
         return {
             "angle_of_attack": round(float(angle_of_attack), 2),
