@@ -13,10 +13,6 @@
     STEP_AOA,
     DEFAULT_AOA,
     DEFAULT_PIVOT,
-    STATUS_STALLED,
-    STATUS_NEAR_STALL,
-    STATUS_PEAK_EFFICIENCY,
-    STATUS_LINEAR_REGION,
   } from "./constants/constants";
   import { onMount } from "svelte";
 
@@ -31,20 +27,20 @@
   let mlDragN = $state<number | null>(null);
   let isApiOnline = $state<boolean>(false);
 
+  // Status from server (label, sub, color, glow)
+  const FALLBACK_STATUS: Status = {
+    label: "—",
+    sub: "Awaiting server",
+    color: "#7FA6B3",
+    glow: "rgba(127,166,179,0.25)",
+  };
+  let mlStatus = $state<Status>(FALLBACK_STATUS);
+
   const min: number = MIN_AOA;
   const max: number = MAX_AOA;
   const step: number = STEP_AOA;
 
   let percent = $derived<number>(((angle - min) / (max - min)) * 100);
-
-  let status = $derived<Status>(
-    (() => {
-      if (angle >= 15) return STATUS_STALLED;
-      if (angle >= 12) return STATUS_NEAR_STALL;
-      if (angle >= 3 && angle <= 5) return STATUS_PEAK_EFFICIENCY;
-      return STATUS_LINEAR_REGION;
-    })(),
-  );
 
   const pivot: Pivot = DEFAULT_PIVOT;
 
@@ -88,8 +84,6 @@
     const currentAoA = angle;
     const currentVel = velocityKmh;
 
-    if (!isApiOnline) return;
-
     fetch("http://localhost:5000/api/v1/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -99,7 +93,12 @@
       }),
     })
       .then((res) => {
-        if (!res.ok) throw new Error("Predict failed");
+        if (!res.ok) {
+          return res.text().then((text) => {
+            console.error(`[PREDICT] HTTP ${res.status}: ${text}`);
+            throw new Error(`Predict failed: ${res.status}`);
+          });
+        }
         return res.json();
       })
       .then((data) => {
@@ -110,15 +109,30 @@
           mlDownforceN = data.downforce_n;
           mlDragN = data.drag_n;
           isApiOnline = true;
+          // Use server-provided status if available, else derive from AoA
+          if (data.status && data.status.label) {
+            mlStatus = data.status as Status;
+          } else {
+            // Fallback: derive status client-side while server restarts
+            const aoa = data.angle_of_attack ?? angle;
+            if (aoa >= 15) mlStatus = { label: "STALLED", sub: "Boundary layer separated", color: "#D9584F", glow: "rgba(217,88,79,0.35)" };
+            else if (aoa >= 12) mlStatus = { label: "NEAR STALL", sub: "Approaching critical AoA", color: "#E0982E", glow: "rgba(224,152,46,0.3)" };
+            else if (aoa >= 3 && aoa <= 5) mlStatus = { label: "PEAK EFFICIENCY", sub: "Optimal CL / CD ratio", color: "#C9A15F", glow: "rgba(201,161,95,0.35)" };
+            else mlStatus = { label: "LINEAR REGION", sub: "Attached flow", color: "#7FA6B3", glow: "rgba(127,166,179,0.25)" };
+          }
+        } else {
+          console.warn("[PREDICT] Unexpected response shape:", data);
         }
       })
-      .catch((_err) => {
+      .catch((err) => {
+        console.error("[PREDICT] Fetch failed:", err.message);
         isApiOnline = false;
         mlEfficiency = null;
         mlCl = null;
         mlCd = null;
         mlDownforceN = null;
         mlDragN = null;
+        mlStatus = FALLBACK_STATUS;
       });
   });
 </script>
@@ -168,7 +182,7 @@
         <!-- Big number -->
         <p
           class="font-display font-semibold leading-none tabular-nums transition-colors duration-250 ease-out"
-          style="font-size: clamp(40px, 5vw, 60px); color: {status.color};"
+          style="font-size: clamp(40px, 5vw, 60px); color: {mlStatus.color};"
         >
           {angle.toFixed(1)}°
         </p>
@@ -176,21 +190,21 @@
         <!-- Status badge -->
         <div
           class="mt-0.5 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-aero-md transition-colors duration-250 ease-out"
-          style="color: {status.color};"
+          style="color: {mlStatus.color};"
         >
           <span
             class="block h-[5px] w-[5px] shrink-0 rounded-full"
-            style="background: {status.color}; box-shadow: 0 0 8px {status.glow};"
+            style="background: {mlStatus.color}; box-shadow: 0 0 8px {mlStatus.glow};"
           ></span>
-          {status.label}
+          {mlStatus.label}
         </div>
 
         <!-- Sub-label -->
         <p
           class="font-mono text-[8px] uppercase tracking-[0.12em] opacity-60 transition-colors duration-250 ease-out"
-          style="color: {status.color};"
+          style="color: {mlStatus.color};"
         >
-          {status.sub}
+          {mlStatus.sub}
         </p>
 
         <!-- ML Efficiency & Telemetry Box -->
@@ -237,14 +251,14 @@
           class="mt-2 overflow-hidden"
           style="width:186px; height:124px; transform:scale(0.62); transform-origin:left top;"
         >
-          <AirfoilDisplay {angle} {status} {pivot} />
+          <AirfoilDisplay {angle} status={mlStatus} {pivot} />
         </div>
       </div>
     </div>
 
     <!-- Row 2: slider, aligned to viewer width -->
     <div class="w-[min(520px,82vw)] px-0.5">
-      <AngleSlider bind:angle {min} {max} {step} {percent} {status} />
+      <AngleSlider bind:angle {min} {max} {step} {percent} status={mlStatus} />
     </div>
   </div>
 

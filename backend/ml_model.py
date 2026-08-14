@@ -12,6 +12,7 @@ from constants import (
     DEFAULT_DATASET_PATH,
     DEFAULT_VELOCITY_KMH,
     STALL_AOA_THRESHOLD_DEG,
+    get_aero_status,
 )
 
 class AerodynamicSurrogateModel:
@@ -84,7 +85,8 @@ class AerodynamicSurrogateModel:
         drag_n = dynamic_pressure * REFERENCE_WING_AREA * cd
         
         is_stalled = angle_of_attack >= STALL_AOA_THRESHOLD_DEG
-        
+        aero_status = get_aero_status(angle_of_attack)
+
         return {
             "angle_of_attack": round(float(angle_of_attack), 2),
             "velocity_kmh": round(float(velocity_kmh), 1),
@@ -93,7 +95,8 @@ class AerodynamicSurrogateModel:
             "efficiency": round(efficiency, 2),
             "downforce_n": round(downforce_n, 2),
             "drag_n": round(drag_n, 2),
-            "is_stalled": is_stalled
+            "is_stalled": is_stalled,
+            "status": aero_status,
         }
 
 if __name__ == "__main__":
