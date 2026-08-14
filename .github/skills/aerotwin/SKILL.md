@@ -81,3 +81,5 @@ Your goal is to build, maintain, and refine **AeroTwin Cloud**—a web applicati
 2. **Fast API Response:** Test latency (<10ms).
 3. **UI Reactivity:** Ensure 60fps rendering in Svelte on slider drag.
 4. **Cloud Readiness:** Include Dockerfile and deployment manifest.
+
+- also, NEVER add/commit/push anything to the repository. I will do it manually

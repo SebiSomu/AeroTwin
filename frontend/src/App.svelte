@@ -72,7 +72,7 @@
 
     <!-- Row 1: 3D viewer centred; angle panel absolutely floated right -->
     <div class="relative flex justify-center">
-      <SpoilerViewer />
+      <SpoilerViewer {angle} />
 
       <!-- Angle panel — absolute so it never pushes the viewer off-centre -->
       <div class="
