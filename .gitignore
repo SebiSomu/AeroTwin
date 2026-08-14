@@ -101,3 +101,5 @@ $RECYCLE.BIN/
 .tmp/
 cache/
 .parcel-cache/
+models/*
+articles/*
