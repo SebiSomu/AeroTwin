@@ -4,6 +4,23 @@
   import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
   import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+  import {
+    MODEL_PATH,
+    MODEL_SCALE_FACTOR,
+    STREAMLINE_COUNT,
+    POINTS_PER_LINE,
+    TOTAL_STREAMLINE_VERTICES,
+    PARTICLE_COUNT,
+    BASE_FLOW_VELOCITY,
+    STREAMLINE_START_Z,
+    STREAMLINE_END_Z,
+    CFD_COLOR_BLUE,
+    CFD_COLOR_CYAN,
+    CFD_COLOR_GREEN,
+    CFD_COLOR_YELLOW,
+    CFD_COLOR_RED,
+  } from "../constants/constants";
+
   let { angle = 4 }: { angle?: number } = $props();
   let container: HTMLDivElement;
   let canvas: HTMLCanvasElement;
@@ -16,14 +33,10 @@
   let controls: OrbitControls;
   let animFrameId: number;
 
-  const STREAMLINE_COUNT = 80;
-  const POINTS_PER_LINE = 40;
-  const TOTAL_VERTICES = STREAMLINE_COUNT * (POINTS_PER_LINE - 1) * 2;
-
   let lineSegmentsMesh: THREE.LineSegments;
   let linePositions: Float32Array;
   let lineColors: Float32Array;
-  const PARTICLE_COUNT = 500;
+
   let particlePoints: THREE.Points;
   let particlePositions: Float32Array;
   let particleColors: Float32Array;
@@ -36,11 +49,7 @@
     speedOffset: number;
   }
   let seeds: StreamSeed[] = [];
-  const COLOR_BLUE = new THREE.Color("#0033FF");
-  const COLOR_CYAN = new THREE.Color("#00E5FF");
-  const COLOR_GREEN = new THREE.Color("#00FF66");
-  const COLOR_YELLOW = new THREE.Color("#FFDD00");
-  const COLOR_RED = new THREE.Color("#FF1100");
+
   let currentAoA = $derived(angle);
   let flowTime = 0;
 
@@ -100,7 +109,7 @@
 
     const loader = new GLTFLoader();
     loader.load(
-      "/models/porsche_gt3rs_spoiler.glb",
+      MODEL_PATH,
       (gltf) => {
         const model = gltf.scene;
 
@@ -109,7 +118,7 @@
         box.getCenter(centre);
         const size = box.getSize(new THREE.Vector3());
         const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 0.85 / maxDim;
+        const scale = MODEL_SCALE_FACTOR / maxDim;
 
         model.position.sub(centre.multiplyScalar(scale));
         model.scale.setScalar(scale);
@@ -175,20 +184,20 @@
     inWake: boolean,
   ): THREE.Color {
     if (isStalled && inWake) {
-      return COLOR_RED;
+      return CFD_COLOR_RED;
     }
     if (velocityRatio < 0.82) {
       const t = Math.max(0, velocityRatio / 0.82);
-      return new THREE.Color().lerpColors(COLOR_BLUE, COLOR_CYAN, t);
+      return new THREE.Color().lerpColors(CFD_COLOR_BLUE, CFD_COLOR_CYAN, t);
     } else if (velocityRatio < 1.05) {
       const t = (velocityRatio - 0.82) / 0.23;
-      return new THREE.Color().lerpColors(COLOR_CYAN, COLOR_GREEN, t);
+      return new THREE.Color().lerpColors(CFD_COLOR_CYAN, CFD_COLOR_GREEN, t);
     } else if (velocityRatio < 1.35) {
       const t = (velocityRatio - 1.05) / 0.3;
-      return new THREE.Color().lerpColors(COLOR_GREEN, COLOR_YELLOW, t);
+      return new THREE.Color().lerpColors(CFD_COLOR_GREEN, CFD_COLOR_YELLOW, t);
     } else {
       const t = Math.min(1, (velocityRatio - 1.35) / 0.35);
-      return new THREE.Color().lerpColors(COLOR_YELLOW, COLOR_RED, t);
+      return new THREE.Color().lerpColors(CFD_COLOR_YELLOW, CFD_COLOR_RED, t);
     }
   }
 
@@ -209,8 +218,8 @@
     }
 
     const lineGeo = new THREE.BufferGeometry();
-    linePositions = new Float32Array(TOTAL_VERTICES * 3);
-    lineColors = new Float32Array(TOTAL_VERTICES * 3);
+    linePositions = new Float32Array(TOTAL_STREAMLINE_VERTICES * 3);
+    lineColors = new Float32Array(TOTAL_STREAMLINE_VERTICES * 3);
 
     lineGeo.setAttribute(
       "position",
@@ -266,9 +275,9 @@
     const isStalled = currentAoA >= 15;
     const isNearStall = currentAoA >= 12;
 
-    const baseVelocity = 0.65;
-    const startZ = -0.55;
-    const endZ = 0.55;
+    const baseVelocity = BASE_FLOW_VELOCITY;
+    const startZ = STREAMLINE_START_Z;
+    const endZ = STREAMLINE_END_Z;
     const zStep = (endZ - startZ) / (POINTS_PER_LINE - 1);
 
     let segIdx = 0;

@@ -7,48 +7,33 @@
   import BottomLabel from "./components/BottomLabel.svelte";
   import SpoilerViewer from "./components/SpoilerViewer.svelte";
   import type { Status, Pivot } from "./types/types";
+  import {
+    MIN_AOA,
+    MAX_AOA,
+    STEP_AOA,
+    DEFAULT_AOA,
+    DEFAULT_PIVOT,
+    STATUS_STALLED,
+    STATUS_NEAR_STALL,
+    STATUS_PEAK_EFFICIENCY,
+    STATUS_LINEAR_REGION,
+  } from "./constants/constants";
 
-  let angle = $state<number>(4);
-  const min: number = -5;
-  const max: number = 20;
-  const step: number = 0.5;
+  let angle = $state<number>(DEFAULT_AOA);
+  const min: number = MIN_AOA;
+  const max: number = MAX_AOA;
+  const step: number = STEP_AOA;
 
   let percent = $derived<number>(((angle - min) / (max - min)) * 100);
 
   let status = $derived<Status>((() => {
-    if (angle >= 15) {
-      return {
-        label: "STALLED",
-        sub: "Boundary layer separated",
-        color: "#D9584F",
-        glow: "rgba(217,88,79,0.35)",
-      };
-    }
-    if (angle >= 12) {
-      return {
-        label: "NEAR STALL",
-        sub: "Approaching critical AoA",
-        color: "#E0982E",
-        glow: "rgba(224,152,46,0.3)",
-      };
-    }
-    if (angle >= 3 && angle <= 5) {
-      return {
-        label: "PEAK EFFICIENCY",
-        sub: "Optimal CL / CD ratio",
-        color: "#C9A15F",
-        glow: "rgba(201,161,95,0.35)",
-      };
-    }
-    return {
-      label: "LINEAR REGION",
-      sub: "Attached flow",
-      color: "#7FA6B3",
-      glow: "rgba(127,166,179,0.25)",
-    };
+    if (angle >= 15) return STATUS_STALLED;
+    if (angle >= 12) return STATUS_NEAR_STALL;
+    if (angle >= 3 && angle <= 5) return STATUS_PEAK_EFFICIENCY;
+    return STATUS_LINEAR_REGION;
   })());
 
-  const pivot: Pivot = { x: 150, y: 100 };
+  const pivot: Pivot = DEFAULT_PIVOT;
 </script>
 
 <div class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-aero-bg font-mono text-aero-text">
