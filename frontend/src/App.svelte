@@ -18,6 +18,7 @@
     STATUS_PEAK_EFFICIENCY,
     STATUS_LINEAR_REGION,
   } from "./constants/constants";
+  import { onMount } from "svelte";
 
   let angle = $state<number>(DEFAULT_AOA);
   let velocityKmh = $state<number>(120);
@@ -47,10 +48,47 @@
 
   const pivot: Pivot = DEFAULT_PIVOT;
 
+  // Health check
+  onMount(() => {
+    const checkHealth = () => {
+      fetch("http://localhost:5000/api/v1/health")
+        .then((res) => {
+          if (!res.ok) throw new Error("Server error");
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.status === "server running") {
+            isApiOnline = true;
+          } else {
+            setOffline();
+          }
+        })
+        .catch(() => {
+          setOffline();
+        });
+    };
+
+    function setOffline() {
+      isApiOnline = false;
+      mlEfficiency = null;
+      mlCl = null;
+      mlCd = null;
+      mlDownforceN = null;
+      mlDragN = null;
+    }
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 3000);
+
+    return () => clearInterval(interval);
+  });
+
   // Reactively fetch ML efficiency prediction whenever angle changes
   $effect(() => {
     const currentAoA = angle;
     const currentVel = velocityKmh;
+
+    if (!isApiOnline) return;
 
     fetch("http://localhost:5000/api/v1/predict", {
       method: "POST",
@@ -60,7 +98,10 @@
         velocity_kmh: currentVel,
       }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Predict failed");
+        return res.json();
+      })
       .then((data) => {
         if (data && typeof data.efficiency === "number") {
           mlEfficiency = data.efficiency;
@@ -73,6 +114,11 @@
       })
       .catch((_err) => {
         isApiOnline = false;
+        mlEfficiency = null;
+        mlCl = null;
+        mlCd = null;
+        mlDownforceN = null;
+        mlDragN = null;
       });
   });
 </script>
