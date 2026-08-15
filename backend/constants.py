@@ -18,6 +18,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASETS_DIR = os.path.join(BASE_DIR, "datasets")
 DEFAULT_DATASET_PATH = os.path.join(DATASETS_DIR, "naca0012_polars.csv")
 
+# ── Model Cache ────────────────────────────────────────────────────────────
+MODEL_CACHE_DIR = os.path.join(BASE_DIR, "cache")
+DEFAULT_MODEL_CACHE_PATH = os.path.join(MODEL_CACHE_DIR, "surrogate_model.joblib")
+
 # ── Aerodynamic Status Definitions (single source of truth) ──────────────────
 STATUS_STALLED = {
     "label": "STALLED",
