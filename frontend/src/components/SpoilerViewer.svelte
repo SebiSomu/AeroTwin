@@ -131,9 +131,7 @@
         model.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
-            const materials = Array.isArray(mesh.material)
-              ? mesh.material
-              : [mesh.material];
+            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
             materials.forEach((mat) => {
               if (mat instanceof THREE.MeshStandardMaterial) {
                 mat.envMapIntensity = 0.8;
