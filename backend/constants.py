@@ -62,18 +62,22 @@ STATUS_LINEAR_REGION = {
     "glow": "rgba(127,166,179,0.25)",
 }
 
-def get_aero_status(aoa: float, peak_min: float = PEAK_EFFICIENCY_AOA_MIN, peak_max: float = PEAK_EFFICIENCY_AOA_MAX) -> dict:
+def get_aero_status(
+    aoa: float,
+    stall_threshold: float = STALL_AOA_THRESHOLD_DEG,
+    near_stall_threshold: float = NEAR_STALL_THRESHOLD_DEG,
+    peak_min: float = PEAK_EFFICIENCY_AOA_MIN,
+    peak_max: float = PEAK_EFFICIENCY_AOA_MAX,
+) -> dict:
     """Return the aerodynamic flow status dict for a given angle of attack.
 
-    peak_min/peak_max default to the static fallback constants above, but
-    AerodynamicSurrogateModel passes in the data-derived band it computes
-    from the actual dataset (see _compute_peak_efficiency_band), so this
-    self-corrects if the polar dataset changes instead of relying on a
-    manually-tuned guess.
+    The thresholds default to fallback constants, but AerodynamicSurrogateModel
+    computes and passes in the data-derived boundaries from the actual dataset
+    (see _compute_flow_regimes), so this adapts automatically to any loaded airfoil polar.
     """
-    if aoa >= STALL_AOA_THRESHOLD_DEG:
+    if aoa >= stall_threshold:
         return STATUS_STALLED
-    if aoa >= NEAR_STALL_THRESHOLD_DEG:
+    if aoa >= near_stall_threshold:
         return STATUS_NEAR_STALL
     if peak_min <= aoa <= peak_max:
         return STATUS_PEAK_EFFICIENCY

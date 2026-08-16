@@ -18,7 +18,12 @@ def health_check():
         "service": "AeroTwin Cloud Surrogate Engine",
         "model_trained": surrogate_model.is_trained,
         "rmse_cl": round(surrogate_model.rmse_cl, 4),
-        "rmse_cd": round(surrogate_model.rmse_cd, 4)
+        "rmse_cd": round(surrogate_model.rmse_cd, 4),
+        "stall_aoa": round(surrogate_model.stall_aoa, 2),
+        "near_stall_aoa": round(surrogate_model.near_stall_aoa, 2),
+        "peak_efficiency_aoa": round(surrogate_model.peak_efficiency_aoa, 2),
+        "cl_max": round(surrogate_model.cl_max, 3),
+        "linear_lift_slope": round(surrogate_model.linear_lift_slope, 4),
     })
 
 @app.route("/api/v1/predict", methods=["POST"])
