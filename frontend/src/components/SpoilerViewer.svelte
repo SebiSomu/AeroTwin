@@ -19,6 +19,7 @@
     CFD_COLOR_GREEN,
     CFD_COLOR_YELLOW,
     CFD_COLOR_RED,
+    CAD_INITIAL_PITCH_OFFSET_DEG,
   } from "../constants/constants";
 
   let { angle = 4 }: { angle?: number } = $props();
@@ -55,6 +56,14 @@
 
   let wingCenter = new THREE.Vector3(0, 0, 0);
   let wingSize = new THREE.Vector3(0.9, 0.4, 0.4);
+  let wingBladeGroup = $state<THREE.Object3D | null>(null);
+
+  $effect(() => {
+    if (wingBladeGroup) {
+      wingBladeGroup.rotation.x =
+        ((angle - CAD_INITIAL_PITCH_OFFSET_DEG) * Math.PI) / 180;
+    }
+  });
 
   onMount(() => {
     renderer = new THREE.WebGLRenderer({
@@ -131,7 +140,9 @@
         model.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
-            const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            const materials = Array.isArray(mesh.material)
+              ? mesh.material
+              : [mesh.material];
             materials.forEach((mat) => {
               if (mat instanceof THREE.MeshStandardMaterial) {
                 mat.envMapIntensity = 0.8;
@@ -141,6 +152,47 @@
             mesh.receiveShadow = true;
           }
         });
+
+        // Separate wing blade assembly from mounting legs
+        const sceneRoot = model.getObjectByName("GLTF_SceneRootNode") || model;
+        const nodesToPivot: THREE.Object3D[] = [];
+
+        sceneRoot.children.forEach((child) => {
+          const isLeg =
+            child.name.includes("001") ||
+            child.name.includes("005") ||
+            child.name.toLowerCase().includes("cube_001") ||
+            child.name.toLowerCase().includes("cube_005") ||
+            child.name.toLowerCase().includes("cube.001") ||
+            child.name.toLowerCase().includes("cube.005") ||
+            !!child.getObjectByName("Object_4") ||
+            !!child.getObjectByName("Object_14");
+
+          if (!isLeg) {
+            nodesToPivot.push(child);
+          }
+        });
+
+        const wingBox = new THREE.Box3();
+        nodesToPivot.forEach((node) => {
+          wingBox.expandByObject(node);
+        });
+        const hingeCenter = new THREE.Vector3();
+        wingBox.getCenter(hingeCenter);
+
+        const bladePivot = new THREE.Group();
+        bladePivot.name = "WingBladePivot";
+        bladePivot.position.copy(hingeCenter);
+
+        nodesToPivot.forEach((node) => {
+          node.position.sub(hingeCenter);
+          bladePivot.add(node);
+        });
+
+        sceneRoot.add(bladePivot);
+        bladePivot.rotation.x =
+          ((angle - CAD_INITIAL_PITCH_OFFSET_DEG) * Math.PI) / 180;
+        wingBladeGroup = bladePivot;
 
         scene.add(model);
         loading = false;

@@ -222,11 +222,17 @@
           <div
             class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
           >
-            <span>Downforce</span>
+            <span>Downforce / Drag</span>
             <span class="font-bold text-aero-text"
-              >{mlDownforceN !== null
-                ? mlDownforceN.toFixed(0) + " N"
-                : "164 N"}</span
+              >{mlDownforceN !== null ? mlDownforceN.toFixed(0) : "164"}N / {mlDragN !== null ? mlDragN.toFixed(0) : "5"}N</span
+            >
+          </div>
+          <div
+            class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
+          >
+            <span>CL / CD Coeff</span>
+            <span class="font-bold text-aero-text"
+              >{mlCl !== null ? mlCl.toFixed(2) : "0.53"} / {mlCd !== null ? mlCd.toFixed(3) : "0.015"}</span
             >
           </div>
           <div

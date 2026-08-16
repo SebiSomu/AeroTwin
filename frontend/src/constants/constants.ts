@@ -19,6 +19,8 @@ export const BASE_FLOW_VELOCITY = 0.65;
 export const STREAMLINE_START_Z = -0.55;
 export const STREAMLINE_END_Z = 0.55;
 
+export const CAD_INITIAL_PITCH_OFFSET_DEG = 12.5;
+
 export const CFD_COLOR_BLUE = new THREE.Color("#0033FF");
 export const CFD_COLOR_CYAN = new THREE.Color("#00E5FF");
 export const CFD_COLOR_GREEN = new THREE.Color("#00FF66");
