@@ -4,6 +4,11 @@ import os
 AIR_DENSITY = 1.225            # kg/m^3 (sea level standard air density)
 REFERENCE_WING_AREA = 0.45    # m^2 (GT3 Rear Wing surface area)
 
+# ── 3D Finite-Wing Geometry Constants (Prandtl Lifting-Line) ───────────────
+WING_SPAN_M = 1.53             # meters (GT3 Rear Wing span)
+WING_ASPECT_RATIO = 5.20       # AR = b^2 / S = 1.53^2 / 0.45
+WING_OSWALD_EFFICIENCY = 0.88  # e (Oswald efficiency factor with GT3 endplates)
+
 # ── Operational & Threshold Defaults ─────────────────────────────────────────
 DEFAULT_VELOCITY_KMH = 120.0
 AOA_MIN_DEG = -5.0

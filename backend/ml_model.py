@@ -11,6 +11,8 @@ from sklearn.metrics import mean_squared_error
 from constants import (
     AIR_DENSITY,
     REFERENCE_WING_AREA,
+    WING_ASPECT_RATIO,
+    WING_OSWALD_EFFICIENCY,
     DEFAULT_DATASET_PATH,
     DEFAULT_MODEL_CACHE_PATH,
     DEFAULT_VELOCITY_KMH,
@@ -217,24 +219,33 @@ class AerodynamicSurrogateModel:
 
     def predict(self, angle_of_attack: float, velocity_kmh: float = DEFAULT_VELOCITY_KMH) -> dict:
         """
-        Predict aerodynamic efficiency (CL / CD) and aerodynamic forces.
+        Predict 3D finite-wing aerodynamic efficiency (CL / CD) and aerodynamic forces
+        using Prandtl Lifting-Line Theory (incorporating wingtip vortices and induced drag).
         """
         if not self.is_trained:
             raise RuntimeError("ML Surrogate Model is not trained yet.")
             
         X_input = np.array([[angle_of_attack]])
-        cl = float(self.model_cl.predict(X_input)[0])
-        cd = float(self.model_cd.predict(X_input)[0])
+        cl_2d = float(self.model_cl.predict(X_input)[0])
+        cd_2d = float(self.model_cd.predict(X_input)[0])
         
-        cd_safe = max(cd, 0.005)
-        efficiency = cl / cd_safe
-        
+        a0_rad = self.linear_lift_slope * (180.0 / np.pi)
+        pi_AR_e = np.pi * WING_ASPECT_RATIO * WING_OSWALD_EFFICIENCY
+        slope_factor = 1.0 / (1.0 + a0_rad / pi_AR_e)
+
+        cl_3d = cl_2d * slope_factor
+        cd_induced = (cl_3d ** 2) / pi_AR_e
+        cd_3d = cd_2d + cd_induced
+
+        cd_3d_safe = max(cd_3d, 0.005)
+        efficiency_3d = cl_3d / cd_3d_safe
+
         v_ms = velocity_kmh / 3.6
         dynamic_pressure = 0.5 * AIR_DENSITY * (v_ms ** 2)
-        
-        downforce_n = dynamic_pressure * REFERENCE_WING_AREA * cl
-        drag_n = dynamic_pressure * REFERENCE_WING_AREA * cd
-        
+
+        downforce_n = dynamic_pressure * REFERENCE_WING_AREA * cl_3d
+        drag_n = dynamic_pressure * REFERENCE_WING_AREA * cd_3d
+
         is_stalled = angle_of_attack >= self.stall_aoa
         aero_status = get_aero_status(
             angle_of_attack,
@@ -247,9 +258,12 @@ class AerodynamicSurrogateModel:
         return {
             "angle_of_attack": round(float(angle_of_attack), 2),
             "velocity_kmh": round(float(velocity_kmh), 1),
-            "cl": round(cl, 4),
-            "cd": round(cd, 4),
-            "efficiency": round(efficiency, 2),
+            "cl": round(cl_3d, 4),
+            "cd": round(cd_3d, 4),
+            "cl_2d": round(cl_2d, 4),
+            "cd_2d": round(cd_2d, 4),
+            "cd_induced": round(cd_induced, 4),
+            "efficiency": round(efficiency_3d, 2),
             "downforce_n": round(downforce_n, 2),
             "drag_n": round(drag_n, 2),
             "is_stalled": is_stalled,
