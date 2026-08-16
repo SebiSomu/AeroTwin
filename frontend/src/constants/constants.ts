@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export const MIN_AOA = -5;
 export const MAX_AOA = 20;
-export const STEP_AOA = 0.5;
+export const STEP_AOA = 0.1;
 export const DEFAULT_AOA = 4;
 export const DEFAULT_PIVOT = { x: 150, y: 100 };
 
