@@ -26,6 +26,7 @@
   let mlDownforceN = $state<number | null>(null);
   let mlDragN = $state<number | null>(null);
   let isApiOnline = $state<boolean>(false);
+  let showForceVectors = $state<boolean>(false);
 
   // Status from server (label, sub, color, glow)
   const FALLBACK_STATUS: Status = {
@@ -159,7 +160,12 @@
   <div class="z-2 flex flex-col items-center gap-3 px-4">
     <!-- Row 1: 3D viewer centred; angle panel absolutely floated right -->
     <div class="relative flex justify-center">
-      <SpoilerViewer {angle} />
+      <SpoilerViewer
+        {angle}
+        {showForceVectors}
+        downforceN={mlDownforceN}
+        dragN={mlDragN}
+      />
 
       <!-- Angle panel — absolute so it never pushes the viewer off-centre -->
       <div
@@ -249,6 +255,47 @@
                 : "text-aero-muted-4"}
               >{isApiOnline ? "SERVER RUNNING" : "SERVER OFFLINE"}</span
             >
+          </div>
+
+          <!-- Optional 3D Aero Force Vectors Toggle -->
+          <div
+            class="mt-1.5 flex flex-col gap-1 w-full border-t border-aero-blue-25 pt-1.5"
+          >
+            <label
+              class="flex items-center gap-1.5 cursor-pointer select-none text-[8px] uppercase tracking-[0.14em] text-aero-muted-4 hover:text-aero-text transition-colors"
+            >
+              <input
+                type="checkbox"
+                bind:checked={showForceVectors}
+                class="accent-[#00E5FF] cursor-pointer h-3 w-3 rounded border border-aero-blue-25"
+              />
+              <span class="font-medium">3D Force Vectors</span>
+            </label>
+
+            {#if showForceVectors}
+              <div
+                class="mt-0.5 flex flex-col gap-1 pl-4 font-mono text-[7.5px] uppercase tracking-[0.12em] text-aero-muted-4 transition-opacity duration-200"
+              >
+                <div class="flex items-center gap-1.5">
+                  <span
+                    class="h-1.5 w-1.5 rounded-full bg-[#00E5FF] shadow-[0_0_4px_#00E5FF]"
+                  ></span>
+                  <span class="text-aero-text">Downforce (FL)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span
+                    class="h-1.5 w-1.5 rounded-full bg-[#D9584F] shadow-[0_0_4px_#D9584F]"
+                  ></span>
+                  <span class="text-aero-text">Drag (FD)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span
+                    class="h-1.5 w-1.5 rounded-full bg-[#00FF66] shadow-[0_0_4px_#00FF66]"
+                  ></span>
+                  <span class="text-aero-text">Net Resultant</span>
+                </div>
+              </div>
+            {/if}
           </div>
         </div>
 

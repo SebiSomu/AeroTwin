@@ -19,10 +19,19 @@
     CFD_COLOR_GREEN,
     CFD_COLOR_YELLOW,
     CFD_COLOR_RED,
-    CAD_INITIAL_PITCH_OFFSET_DEG,
   } from "../constants/constants";
 
-  let { angle = 4 }: { angle?: number } = $props();
+  let {
+    angle = 4,
+    showForceVectors = false,
+    downforceN = null,
+    dragN = null,
+  }: {
+    angle?: number;
+    showForceVectors?: boolean;
+    downforceN?: number | null;
+    dragN?: number | null;
+  } = $props();
   let container: HTMLDivElement;
   let canvas: HTMLCanvasElement;
   let loading = $state(true);
@@ -44,6 +53,11 @@
   let particleProgress: Float32Array;
   let particleStreamId: Int32Array;
 
+  let forceVectorsGroup = $state<THREE.Group | null>(null);
+  let arrowDownforce: THREE.ArrowHelper | null = null;
+  let arrowDrag: THREE.ArrowHelper | null = null;
+  let arrowResultant: THREE.ArrowHelper | null = null;
+
   interface StreamSeed {
     x: number;
     y: number;
@@ -58,10 +72,18 @@
   let wingSize = new THREE.Vector3(0.9, 0.4, 0.4);
   let wingBladeGroup = $state<THREE.Object3D | null>(null);
 
+  const CAD_INITIAL_PITCH_OFFSET_DEG = 12.5;
+
   $effect(() => {
     if (wingBladeGroup) {
       wingBladeGroup.rotation.x =
         ((angle - CAD_INITIAL_PITCH_OFFSET_DEG) * Math.PI) / 180;
+    }
+  });
+
+  $effect(() => {
+    if (forceVectorsGroup) {
+      forceVectorsGroup.visible = showForceVectors;
     }
   });
 
@@ -115,6 +137,7 @@
     canvas.addEventListener("pointerdown", stopAutoRotate);
 
     initWindStreamlines();
+    initForceVectors();
 
     const loader = new GLTFLoader();
     loader.load(
@@ -215,6 +238,9 @@
       const delta = clock.getDelta();
       flowTime += delta;
       updateWindStreamlines(delta);
+      if (showForceVectors) {
+        updateForceVectors();
+      }
       controls.update();
       renderer.render(scene, camera);
     };
@@ -227,6 +253,103 @@
       renderer.dispose();
     };
   });
+
+  function initForceVectors() {
+    forceVectorsGroup = new THREE.Group();
+    forceVectorsGroup.name = "AeroForceVectors";
+    forceVectorsGroup.visible = showForceVectors;
+
+    const origin = new THREE.Vector3(0, 0, 0);
+
+    // Downforce: points down -Y (Cyan)
+    arrowDownforce = new THREE.ArrowHelper(
+      new THREE.Vector3(0, -1, 0),
+      origin,
+      0.15,
+      0x00e5ff,
+      0.035,
+      0.02,
+    );
+
+    // Drag: points rearward +Z (Red/Coral)
+    arrowDrag = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 0, 1),
+      origin,
+      0.06,
+      0xd9584f,
+      0.035,
+      0.02,
+    );
+
+    // Net Resultant: Neon Green
+    arrowResultant = new THREE.ArrowHelper(
+      new THREE.Vector3(0, -1, 0.2).normalize(),
+      origin,
+      0.16,
+      0x00ff66,
+      0.04,
+      0.025,
+    );
+
+    forceVectorsGroup.add(arrowDownforce);
+    forceVectorsGroup.add(arrowDrag);
+    forceVectorsGroup.add(arrowResultant);
+
+    scene.add(forceVectorsGroup);
+  }
+
+  function updateForceVectors() {
+    if (!forceVectorsGroup || !arrowDownforce || !arrowDrag || !arrowResultant)
+      return;
+
+    const F_L = downforceN !== null ? downforceN : 164.0;
+    const F_D = dragN !== null ? dragN : 5.0;
+    const scaleFactor = 0.00065; // ~0.26m at 400N
+
+    // 1. Downforce Arrow
+    const absDownforce = Math.abs(F_L);
+    const lenDownforce = Math.max(
+      0.02,
+      Math.min(0.5, absDownforce * scaleFactor),
+    );
+    const dirDownforce = new THREE.Vector3(0, F_L >= 0 ? -1 : 1, 0);
+    arrowDownforce.setDirection(dirDownforce);
+    arrowDownforce.setLength(
+      lenDownforce,
+      Math.min(0.035, lenDownforce * 0.28),
+      Math.min(0.022, lenDownforce * 0.18),
+    );
+
+    // 2. Drag Arrow
+    const lenDrag = Math.max(0.02, Math.min(0.5, F_D * scaleFactor));
+    const dirDrag = new THREE.Vector3(0, 0, 1);
+    arrowDrag.setDirection(dirDrag);
+    arrowDrag.setLength(
+      lenDrag,
+      Math.min(0.035, lenDrag * 0.28),
+      Math.min(0.022, lenDrag * 0.18),
+    );
+
+    // 3. Resultant Force Arrow
+    const resY = F_L >= 0 ? -lenDownforce : lenDownforce;
+    const resZ = lenDrag;
+    const resVec = new THREE.Vector3(0, resY, resZ);
+    const lenResultant = resVec.length();
+    if (lenResultant > 0.001) {
+      arrowResultant.setDirection(resVec.clone().normalize());
+      arrowResultant.setLength(
+        lenResultant,
+        Math.min(0.04, lenResultant * 0.25),
+        Math.min(0.025, lenResultant * 0.15),
+      );
+    }
+
+    forceVectorsGroup.position.set(
+      wingCenter.x,
+      wingCenter.y + 0.02,
+      wingCenter.z,
+    );
+  }
 
   function getF1CFDColor(
     velocityRatio: number,
