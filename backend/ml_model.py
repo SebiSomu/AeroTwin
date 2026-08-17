@@ -10,9 +10,6 @@ from sklearn.metrics import mean_squared_error
 
 from constants import (
     AIR_DENSITY,
-    REFERENCE_WING_AREA,
-    WING_ASPECT_RATIO,
-    WING_OSWALD_EFFICIENCY,
     DEFAULT_DATASET_PATH,
     DEFAULT_MODEL_CACHE_PATH,
     DEFAULT_VELOCITY_KMH,
@@ -23,6 +20,8 @@ from constants import (
     PEAK_EFFICIENCY_BAND_FRACTION,
     get_aero_status,
 )
+
+from visual_model_config import (REFERENCE_WING_AREA)
 
 from formulas import (
     calculate_dynamic_pressure,
@@ -225,14 +224,8 @@ class AerodynamicSurrogateModel:
         X_input = np.array([[angle_of_attack]])
         cl_2d = float(self.model_cl.predict(X_input)[0])
         cd_2d = float(self.model_cd.predict(X_input)[0])
-        
-        # 1. Prandtl 3D finite-wing correction
         cl_3d, cd_3d, cd_induced = self._apply_3d_correction(cl_2d, cd_2d)
-
-        # 2. Aerodynamic Efficiency
         efficiency_3d = float(calculate_aerodynamic_efficiency(cl_3d, cd_3d))
-
-        # 3. Dynamic Pressure & Aerodynamic Forces
         dynamic_pressure = calculate_dynamic_pressure(velocity_kmh, AIR_DENSITY)
         downforce_n, drag_n = calculate_aerodynamic_forces(cl_3d, cd_3d, dynamic_pressure, REFERENCE_WING_AREA)
 

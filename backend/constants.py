@@ -1,44 +1,28 @@
 import os
 
-# ── Aerodynamic Physical Constants ───────────────────────────────────────────
-AIR_DENSITY = 1.225            # kg/m^3 (sea level standard air density)
-REFERENCE_WING_AREA = 0.45    # m^2 (GT3 Rear Wing surface area)
+# Aerodynamic Physical Constants
+AIR_DENSITY = 1.225   # kg/m^3 (sea level standard air density)
 
-# ── 3D Finite-Wing Geometry Constants (Prandtl Lifting-Line) ───────────────
-WING_SPAN_M = 1.53             # meters (GT3 Rear Wing span)
-WING_ASPECT_RATIO = 5.20       # AR = b^2 / S = 1.53^2 / 0.45
-WING_OSWALD_EFFICIENCY = 0.88  # e (Oswald efficiency factor with GT3 endplates)
-
-# ── Operational & Threshold Defaults ─────────────────────────────────────────
+# Operational & Threshold Defaults
 DEFAULT_VELOCITY_KMH = 120.0
 AOA_MIN_DEG = -5.0
 AOA_MAX_DEG = 20.0
 STALL_AOA_THRESHOLD_DEG = 15.0
 NEAR_STALL_THRESHOLD_DEG = 12.0
-
-# Fallback peak-efficiency window, only used if the data-driven band computed
-# in AerodynamicSurrogateModel._compute_peak_efficiency_band() is unavailable.
-# Under normal operation that computed band (derived from the actual dataset)
-# is passed into get_aero_status() and overrides these.
 PEAK_EFFICIENCY_AOA_MIN = 3.0
 PEAK_EFFICIENCY_AOA_MAX = 5.0
-
-# Width of the data-driven peak-efficiency band: AoA range where efficiency
-# (CL/CD) stays within this fraction of the true measured maximum.
 PEAK_EFFICIENCY_BAND_FRACTION = 0.95
 
-# ── Dataset & File Paths ──────────────────────────────────────────────────────
+# Dataset & File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASETS_DIR = os.path.join(BASE_DIR, "datasets")
 DEFAULT_DATASET_PATH = os.path.join(DATASETS_DIR, "naca0012_polars.csv")
 
-# ── Model Cache ────────────────────────────────────────────────────────────
-# Trained pipelines are cached here and only retrained when the dataset's
-# content hash no longer matches the hash stored in the cache file.
+# Model Cache
 MODEL_CACHE_DIR = os.path.join(BASE_DIR, "cache")
 DEFAULT_MODEL_CACHE_PATH = os.path.join(MODEL_CACHE_DIR, "surrogate_model.joblib")
 
-# ── Aerodynamic Status Definitions (single source of truth) ──────────────────
+# Aerodynamic Status Definitions
 STATUS_STALLED = {
     "label": "STALLED",
     "sub": "Boundary layer separated",
@@ -67,13 +51,7 @@ STATUS_LINEAR_REGION = {
     "glow": "rgba(127,166,179,0.25)",
 }
 
-def get_aero_status(
-    aoa: float,
-    stall_threshold: float = STALL_AOA_THRESHOLD_DEG,
-    near_stall_threshold: float = NEAR_STALL_THRESHOLD_DEG,
-    peak_min: float = PEAK_EFFICIENCY_AOA_MIN,
-    peak_max: float = PEAK_EFFICIENCY_AOA_MAX,
-) -> dict:
+def get_aero_status(aoa: float, stall_threshold: float = STALL_AOA_THRESHOLD_DEG, near_stall_threshold: float = NEAR_STALL_THRESHOLD_DEG, peak_min: float = PEAK_EFFICIENCY_AOA_MIN, peak_max: float = PEAK_EFFICIENCY_AOA_MAX) -> dict:
     """Return the aerodynamic flow status dict for a given angle of attack.
 
     The thresholds default to fallback constants, but AerodynamicSurrogateModel

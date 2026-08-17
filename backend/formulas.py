@@ -1,10 +1,12 @@
 import numpy as np
 from constants import (
     AIR_DENSITY,
+    PEAK_EFFICIENCY_BAND_FRACTION,
+)
+from visual_model_config import (
     REFERENCE_WING_AREA,
     WING_ASPECT_RATIO,
     WING_OSWALD_EFFICIENCY,
-    PEAK_EFFICIENCY_BAND_FRACTION,
 )
 
 
