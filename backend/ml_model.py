@@ -24,6 +24,17 @@ from constants import (
     get_aero_status,
 )
 
+from formulas import (
+    calculate_dynamic_pressure,
+    calculate_aerodynamic_forces,
+    calculate_aerodynamic_efficiency,
+    calculate_prandtl_3d_correction,
+    calculate_linear_lift_slope,
+    calculate_stall_characteristics,
+    calculate_near_stall_angle,
+    calculate_peak_efficiency_envelope,
+)
+
 class AerodynamicSurrogateModel:
     """
     Machine Learning Surrogate Model for millisecond-level prediction of
@@ -42,8 +53,6 @@ class AerodynamicSurrogateModel:
         self.rmse_cl = 0.0
         self.rmse_cd = 0.0
         self.is_trained = False
-
-        # Data-derived flow regime boundaries (calculated from polar curves)
         self.stall_aoa = STALL_AOA_THRESHOLD_DEG
         self.near_stall_aoa = NEAR_STALL_THRESHOLD_DEG
         self.cl_max = 1.45
@@ -122,34 +131,16 @@ class AerodynamicSurrogateModel:
         print(f"[ML Model] Cached trained pipeline to {self.cache_path}")
 
     def _apply_3d_correction(self, cl_2d, cd_2d):
-        """
-        Apply Prandtl lifting-line finite-wing correction to 2D section
-        coefficients. Works on scalars or numpy arrays.
-
-        Shared by predict() and _compute_flow_regimes() so the peak-efficiency
-        band is always derived from the same physics that actually gets
-        returned to the caller -- computing it from the raw 2D data alone
-        (as an earlier version did) ignores induced drag (CL^2/(pi*AR*e)),
-        which grows quadratically with CL and shifts the true optimum to a
-        noticeably lower AoA than the 2D polar's own peak.
-        """
-        a0_rad = self.linear_lift_slope * (180.0 / np.pi)
-        pi_AR_e = np.pi * WING_ASPECT_RATIO * WING_OSWALD_EFFICIENCY
-        slope_factor = 1.0 / (1.0 + a0_rad / pi_AR_e)
-
-        cl_3d = cl_2d * slope_factor
-        cd_induced = (cl_3d ** 2) / pi_AR_e
-        cd_3d = cd_2d + cd_induced
-        return cl_3d, cd_3d, cd_induced
+        """Delegate Prandtl lifting-line finite-wing correction to physics module."""
+        return calculate_prandtl_3d_correction(cl_2d, cd_2d, self.linear_lift_slope)
 
     def _compute_flow_regimes(self):
         """
-        Derive all flow regimes directly from the polar dataset via interpolation
-        and calculus (numerical derivatives):
+        Derive flow regimes directly from polar dataset via calculus & physics formulas:
         - Critical Stall Angle: argmax(CL) where dCL/dAoA = 0
+        - Linear Lift Slope: baseline dCL/dAoA around 0° incidence
         - Near Stall Boundary: inflection point where dCL/dAoA drops < 40% of linear slope
         - Peak Efficiency Band: AoA envelope where CL/CD stays within 95% of maximum
-        - Linear Lift Slope: baseline dCL/dAoA around 0° incidence
         """
         df = pd.read_csv(self.dataset_path)
         aoa = df['angle_of_attack'].values
@@ -160,48 +151,29 @@ class AerodynamicSurrogateModel:
         cl_interp = np.interp(fine_grid, aoa, cl)
         cd_interp = np.interp(fine_grid, aoa, cd)
 
-        stall_idx = int(np.argmax(cl_interp))
-        self.stall_aoa = round(float(fine_grid[stall_idx]), 2)
-        self.cl_max = round(float(cl_interp[stall_idx]), 3)
+        # 1. Stall Characteristics & Linear Slope
+        self.stall_aoa, self.cl_max, stall_idx = calculate_stall_characteristics(fine_grid, cl_interp)
+        self.linear_lift_slope = calculate_linear_lift_slope(fine_grid, cl_interp)
 
-        zero_idx = np.argmin(np.abs(fine_grid - 0.0))
-        idx_5deg = np.argmin(np.abs(fine_grid - 5.0))
-        if idx_5deg != zero_idx:
-            linear_slope = (cl_interp[idx_5deg] - cl_interp[zero_idx]) / (fine_grid[idx_5deg] - fine_grid[zero_idx])
-        else:
-            linear_slope = 0.105
-        self.linear_lift_slope = round(float(linear_slope), 4)
+        # 2. Near-Stall Inflection Boundary
+        self.near_stall_aoa = calculate_near_stall_angle(
+            fine_grid, cl_interp, self.linear_lift_slope, self.cl_max, stall_idx
+        )
 
-        dcl_da = np.gradient(cl_interp, fine_grid)
-        near_stall_idx = stall_idx
-        for i in range(zero_idx, stall_idx):
-            if dcl_da[i] < 0.4 * linear_slope or cl_interp[i] >= 0.95 * self.cl_max:
-                near_stall_idx = i
-                break
-        self.near_stall_aoa = round(float(fine_grid[near_stall_idx]), 2)
+        # 3. 3D Aerodynamic Efficiency Envelope
         cl_3d_interp, cd_3d_interp, _ = self._apply_3d_correction(cl_interp, cd_interp)
-        efficiency_3d = cl_3d_interp / np.maximum(cd_3d_interp, 0.005)
+        efficiency_3d = calculate_aerodynamic_efficiency(cl_3d_interp, cd_3d_interp)
 
-        peak_idx = int(np.argmax(efficiency_3d))
-        peak_value = float(efficiency_3d[peak_idx])
-        threshold = peak_value * PEAK_EFFICIENCY_BAND_FRACTION
+        self.peak_efficiency_aoa, self.peak_efficiency_aoa_min, self.peak_efficiency_aoa_max = (
+            calculate_peak_efficiency_envelope(fine_grid, efficiency_3d, PEAK_EFFICIENCY_BAND_FRACTION)
+        )
 
-        left_idx = peak_idx
-        while left_idx > 0 and efficiency_3d[left_idx - 1] >= threshold:
-            left_idx -= 1
-        right_idx = peak_idx
-        while right_idx < len(fine_grid) - 1 and efficiency_3d[right_idx + 1] >= threshold:
-            right_idx += 1
-
-        self.peak_efficiency_aoa = round(float(fine_grid[peak_idx]), 2)
-        self.peak_efficiency_aoa_min = round(float(fine_grid[left_idx]), 2)
-        self.peak_efficiency_aoa_max = round(float(fine_grid[right_idx]), 2)
-
+        # Peak Point Validation via ML Model
         X_peak = np.array([[self.peak_efficiency_aoa]])
         cl_2d_at_peak = float(self.model_cl.predict(X_peak)[0])
         cd_2d_at_peak = float(self.model_cd.predict(X_peak)[0])
         cl_3d_at_peak, cd_3d_at_peak, _ = self._apply_3d_correction(cl_2d_at_peak, cd_2d_at_peak)
-        self.peak_efficiency_value = round(cl_3d_at_peak / max(cd_3d_at_peak, 0.005), 2)
+        self.peak_efficiency_value = round(float(calculate_aerodynamic_efficiency(cl_3d_at_peak, cd_3d_at_peak)), 2)
 
         print(
             f"[ML Model] Flow Regimes Derived: Stall={self.stall_aoa}° (CL_max={self.cl_max}) | "
@@ -254,16 +226,15 @@ class AerodynamicSurrogateModel:
         cl_2d = float(self.model_cl.predict(X_input)[0])
         cd_2d = float(self.model_cd.predict(X_input)[0])
         
+        # 1. Prandtl 3D finite-wing correction
         cl_3d, cd_3d, cd_induced = self._apply_3d_correction(cl_2d, cd_2d)
 
-        cd_3d_safe = max(cd_3d, 0.005)
-        efficiency_3d = cl_3d / cd_3d_safe
+        # 2. Aerodynamic Efficiency
+        efficiency_3d = float(calculate_aerodynamic_efficiency(cl_3d, cd_3d))
 
-        v_ms = velocity_kmh / 3.6
-        dynamic_pressure = 0.5 * AIR_DENSITY * (v_ms ** 2)
-
-        downforce_n = dynamic_pressure * REFERENCE_WING_AREA * cl_3d
-        drag_n = dynamic_pressure * REFERENCE_WING_AREA * cd_3d
+        # 3. Dynamic Pressure & Aerodynamic Forces
+        dynamic_pressure = calculate_dynamic_pressure(velocity_kmh, AIR_DENSITY)
+        downforce_n, drag_n = calculate_aerodynamic_forces(cl_3d, cd_3d, dynamic_pressure, REFERENCE_WING_AREA)
 
         is_stalled = angle_of_attack >= self.stall_aoa
         aero_status = get_aero_status(

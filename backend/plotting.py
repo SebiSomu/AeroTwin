@@ -10,6 +10,7 @@ from constants import (
     DEFAULT_VELOCITY_KMH,
     MODEL_CACHE_DIR,
 )
+from formulas import calculate_aerodynamic_efficiency
 
 def generate_or_load_aero_chart(model, cache_dir: str = None) -> str:
     """
@@ -118,7 +119,7 @@ def generate_or_load_aero_chart(model, cache_dir: str = None) -> str:
 
     # Subplot 3: Aerodynamic Efficiency (L/D)
     ax3 = axes[1, 0]
-    eff_2d = cl_2d_pred / np.maximum(cd_2d_pred, 0.005)
+    eff_2d = calculate_aerodynamic_efficiency(cl_2d_pred, cd_2d_pred)
     ax3.plot(aoa_grid, eff_2d, '--', color=muted_color, linewidth=1.5, label="2D Section L/D")
     ax3.plot(aoa_grid, eff_3d_pred, '-', color=green_color, linewidth=2.2, label="3D Finite-Wing Efficiency (L/D)")
     ax3.axvspan(model.peak_efficiency_aoa_min, model.peak_efficiency_aoa_max, 
