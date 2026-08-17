@@ -27,6 +27,7 @@
   let mlDragN = $state<number | null>(null);
   let isApiOnline = $state<boolean>(false);
   let showForceVectors = $state<boolean>(false);
+  let showChartModal = $state<boolean>(false);
 
   // Status from server (label, sub, color, glow)
   const FALLBACK_STATUS: Status = {
@@ -297,6 +298,14 @@
               </div>
             {/if}
           </div>
+
+          <!-- Matplotlib Aerodynamic Diagnostic Plot Trigger Button -->
+          <button
+            onclick={() => (showChartModal = true)}
+            class="mt-2 flex items-center justify-center gap-1.5 w-full py-1 px-2 border border-[#00E5FF]/40 rounded bg-[#00E5FF]/10 text-[8px] font-mono uppercase tracking-[0.14em] text-[#00E5FF] hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] transition-all cursor-pointer select-none"
+          >
+            <span>Aero Polars & Surrogate Plot</span>
+          </button>
         </div>
 
         <!-- Mini airfoil — scaled down, clipped -->
@@ -316,4 +325,39 @@
   </div>
 
   <BottomLabel text="AoA Control · Module 01" />
+
+  <!-- Matplotlib Chart Modal Overlay -->
+  {#if showChartModal}
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+    >
+      <div
+        class="relative flex flex-col items-center max-w-5xl w-full max-h-[90vh] bg-[#0B0F14] border border-[#1F2B37] rounded-lg p-4 shadow-2xl overflow-auto"
+      >
+        <div class="flex items-center justify-between w-full mb-3 border-b border-[#1F2B37] pb-2">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-[#00E5FF] shadow-[0_0_8px_#00E5FF]"></span>
+            <h3 class="font-mono text-xs uppercase tracking-widest text-[#00E5FF] font-bold">
+              Aerodynamic Diagnostic Telemetry
+            </h3>
+          </div>
+          <button
+            onclick={() => (showChartModal = false)}
+            class="px-2 py-0.5 rounded border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/30 text-xs font-mono tracking-wider cursor-pointer transition-colors"
+          >
+            x
+          </button>
+        </div>
+
+        <div class="relative w-full flex justify-center bg-[#0B0F14] rounded overflow-hidden">
+          <img
+            src="http://localhost:5000/api/v1/chart?t={Date.now()}"
+            alt="Matplotlib Aerodynamic Telemetry Chart"
+            class="max-w-full h-auto object-contain rounded border border-[#1F2B37]"
+          />
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
+

@@ -3,7 +3,7 @@ import hashlib
 import joblib
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error
@@ -218,11 +218,13 @@ class AerodynamicSurrogateModel:
         y_cd = df['cd'].values
         
         self.model_cl = Pipeline([
+            ('scaler', StandardScaler()),
             ('poly', PolynomialFeatures(degree=4)),
             ('ridge', Ridge(alpha=0.001))
         ])
         
         self.model_cd = Pipeline([
+            ('scaler', StandardScaler()),
             ('poly', PolynomialFeatures(degree=4)),
             ('ridge', Ridge(alpha=0.001))
         ])
