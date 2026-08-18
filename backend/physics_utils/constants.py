@@ -1,22 +1,27 @@
 import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+
+# Constants used for aerodynamic calculations and model configuration
 
 # Aerodynamic Physical Constants
 AIR_DENSITY = 1.225   # kg/m^3 (sea level standard air density)
 
 # Operational & Threshold Defaults
-DEFAULT_VELOCITY_KMH = 120.0
-AOA_MIN_DEG = -5.0
-AOA_MAX_DEG = 20.0
-STALL_AOA_THRESHOLD_DEG = 15.0
-NEAR_STALL_THRESHOLD_DEG = 12.0
-PEAK_EFFICIENCY_AOA_MIN = 3.0
-PEAK_EFFICIENCY_AOA_MAX = 5.0
-PEAK_EFFICIENCY_BAND_FRACTION = 0.95
+DEFAULT_VELOCITY_KMH = 120.0  # km/h (default vehicle speed for calculations)
+AOA_MIN_DEG = -5.0  # degrees (minimum angle of attack for analysis)
+AOA_MAX_DEG = 20.0  # degrees (maximum angle of attack for analysis)
+STALL_AOA_THRESHOLD_DEG = 15.0  # degrees (stall angle of attack threshold)
+NEAR_STALL_THRESHOLD_DEG = 12.0  # degrees (near-stall angle of attack threshold)
+PEAK_EFFICIENCY_AOA_MIN = 3.0  # degrees (minimum angle of attack for peak efficiency)
+PEAK_EFFICIENCY_AOA_MAX = 5.0  # degrees (maximum angle of attack for peak efficiency)
+PEAK_EFFICIENCY_BAND_FRACTION = 0.95  # fraction (bandwidth for peak efficiency)
 
 # Dataset & File Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASETS_DIR = os.path.join(BASE_DIR, "datasets")
-DEFAULT_DATASET_PATH = os.path.join(DATASETS_DIR, "naca0012_polars.csv")
+DEFAULT_DATASET_PATH = BASE_DIR.parent / "datasets" / "naca0012_polars.csv"
 
 # Model Cache
 MODEL_CACHE_DIR = os.path.join(BASE_DIR, "cache")

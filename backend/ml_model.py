@@ -8,7 +8,7 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import mean_squared_error
 
-from constants import (
+from physics_utils.constants import (
     AIR_DENSITY,
     DEFAULT_DATASET_PATH,
     DEFAULT_MODEL_CACHE_PATH,
@@ -23,7 +23,7 @@ from constants import (
 
 from visual_model_config import (REFERENCE_WING_AREA)
 
-from formulas import (
+from physics_utils.formulas import (
     calculate_dynamic_pressure,
     calculate_aerodynamic_forces,
     calculate_aerodynamic_efficiency,

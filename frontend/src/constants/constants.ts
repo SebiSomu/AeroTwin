@@ -1,25 +1,26 @@
 import * as THREE from "three";
 
-export const MIN_AOA = -5;
-export const MAX_AOA = 20;
-export const STEP_AOA = 0.1;
+// Constants used for airfoil simulation and visualization
+
+export const MIN_AOA = -5;  // Minimum angle of attack in degrees, used to define the lower limit for aerodynamic calculations.
+export const MAX_AOA = 20;  // Maximum angle of attack in degrees, used to define the upper limit for aerodynamic calculations.
+export const STEP_AOA = 0.1;  // Step size for angle of attack in degrees, used to incrementally calculate aerodynamic properties across a range of angles.
 export const DEFAULT_AOA = 4;
 export const DEFAULT_PIVOT = { x: 150, y: 100 };
 
 export const MODEL_PATH = "/models/porsche_gt3rs_spoiler.glb";
 export const MODEL_SCALE_FACTOR = 0.85;
 
-export const STREAMLINE_COUNT = 80;
-export const POINTS_PER_LINE = 40;
-export const TOTAL_STREAMLINE_VERTICES =
-  STREAMLINE_COUNT * (POINTS_PER_LINE - 1) * 2;
-export const PARTICLE_COUNT = 500;
+export const STREAMLINE_COUNT = 80;  // Number of streamlines to be generated in the flow visualization, affecting the density and clarity of the flow representation.
+export const POINTS_PER_LINE = 40;  // Number of points per streamline, determining the resolution of each streamline and the smoothness of the flow visualization.
+export const TOTAL_STREAMLINE_VERTICES = STREAMLINE_COUNT * (POINTS_PER_LINE - 1) * 2; // Total number of vertices for all streamlines, calculated based on the number of streamlines and points per line, used for buffer allocation in rendering.
+export const PARTICLE_COUNT = 500;  // Number of particles to be used in the particle system for flow visualization, affecting the visual density and dynamics of the flow representation.
 
-export const BASE_FLOW_VELOCITY = 0.65;
-export const STREAMLINE_START_Z = -0.55;
-export const STREAMLINE_END_Z = 0.55;
+export const BASE_FLOW_VELOCITY = 0.65;  // Base flow velocity in the simulation, used to define the initial speed of the airflow in the aerodynamic model.
+export const STREAMLINE_START_Z = -0.55;  // Starting Z position for streamlines in the flow visualization, defining where the streamlines originate in the 3D space of the simulation.
+export const STREAMLINE_END_Z = 0.55;  // Ending Z position for streamlines in the flow visualization, defining where the streamlines terminate in the 3D space of the simulation.
 
-export const CAD_INITIAL_PITCH_OFFSET_DEG = 12.5;
+export const CAD_INITIAL_PITCH_OFFSET_DEG = 12.5;  // Initial pitch offset in degrees for the CAD model, used to set the initial orientation of the model in the simulation environment.
 
 export const CFD_COLOR_BLUE = new THREE.Color("#0033FF");
 export const CFD_COLOR_CYAN = new THREE.Color("#00E5FF");

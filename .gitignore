@@ -103,3 +103,4 @@ cache/
 .parcel-cache/
 models/*
 articles/*
+model-results/*

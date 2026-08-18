@@ -1,5 +1,10 @@
+import sys
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import numpy as np
-from constants import (
+from physics_utils.constants import (
     AIR_DENSITY,
     PEAK_EFFICIENCY_BAND_FRACTION,
 )
@@ -9,6 +14,7 @@ from visual_model_config import (
     WING_OSWALD_EFFICIENCY,
 )
 
+# Physical Formulas for Aerodynamic Calculations
 
 # Dynamic Pressure & Dimensional Forces
 

@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from constants import (
+from physics_utils.constants import (
     DEFAULT_DATASET_PATH,
     DEFAULT_VELOCITY_KMH,
     MODEL_CACHE_DIR,
 )
-from formulas import calculate_aerodynamic_efficiency
+from physics_utils.formulas import calculate_aerodynamic_efficiency
 
 def generate_or_load_aero_chart(model, cache_dir: str = None) -> str:
     """
