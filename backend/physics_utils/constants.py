@@ -3,8 +3,6 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Constants used for aerodynamic calculations and model configuration
-
 # Aerodynamic Physical Constants
 AIR_DENSITY = 1.225   # kg/m^3 (sea level standard air density)
 
@@ -18,14 +16,18 @@ PEAK_EFFICIENCY_AOA_MIN = 3.0  # degrees (minimum angle of attack for peak effic
 PEAK_EFFICIENCY_AOA_MAX = 5.0  # degrees (maximum angle of attack for peak efficiency)
 PEAK_EFFICIENCY_BAND_FRACTION = 0.95  # fraction (bandwidth for peak efficiency)
 
+# Near-Stall Detection Sensitivity
+NEAR_STALL_SLOPE_FRACTION = 0.4   # fraction of linear lift slope that signals inflection onset
+NEAR_STALL_CL_FRACTION = 0.95     # fraction of CL_max that signals inflection onset
+
 # Dataset & File Paths
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASETS_DIR = os.path.join(BASE_DIR, "datasets")
-DEFAULT_DATASET_PATH = BASE_DIR.parent / "datasets" / "naca0012_polars.csv"
+DATASETS_DIR = BASE_DIR.parent / "datasets"
+DEFAULT_DATASET_PATH = DATASETS_DIR / "naca0012_polars.csv"
 
 # Model Cache
-MODEL_CACHE_DIR = os.path.join(BASE_DIR, "cache")
-DEFAULT_MODEL_CACHE_PATH = os.path.join(MODEL_CACHE_DIR, "surrogate_model.joblib")
+MODEL_CACHE_DIR = BASE_DIR.parent / "cache"
+DEFAULT_MODEL_CACHE_PATH = MODEL_CACHE_DIR / "surrogate_model.joblib"
+MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Aerodynamic Status Definitions
 STATUS_STALLED = {
@@ -56,7 +58,7 @@ STATUS_LINEAR_REGION = {
     "glow": "rgba(127,166,179,0.25)",
 }
 
-def get_aero_status(aoa: float, stall_threshold: float = STALL_AOA_THRESHOLD_DEG, near_stall_threshold: float = NEAR_STALL_THRESHOLD_DEG, peak_min: float = PEAK_EFFICIENCY_AOA_MIN, peak_max: float = PEAK_EFFICIENCY_AOA_MAX) -> dict:
+def get_aero_status(aoa: float,stall_threshold: float = STALL_AOA_THRESHOLD_DEG,near_stall_threshold: float = NEAR_STALL_THRESHOLD_DEG,peak_min: float = PEAK_EFFICIENCY_AOA_MIN,peak_max: float = PEAK_EFFICIENCY_AOA_MAX,) -> dict:
     """Return the aerodynamic flow status dict for a given angle of attack.
 
     The thresholds default to fallback constants, but AerodynamicSurrogateModel

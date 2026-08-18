@@ -7,11 +7,13 @@ import numpy as np
 from physics_utils.constants import (
     AIR_DENSITY,
     PEAK_EFFICIENCY_BAND_FRACTION,
+    NEAR_STALL_SLOPE_FRACTION,
+    NEAR_STALL_CL_FRACTION
 )
 from visual_model_config import (
     REFERENCE_WING_AREA,
     WING_ASPECT_RATIO,
-    WING_OSWALD_EFFICIENCY,
+    WING_OSWALD_EFFICIENCY
 )
 
 # Physical Formulas for Aerodynamic Calculations
@@ -25,6 +27,7 @@ def calculate_dynamic_pressure(velocity_kmh: float, air_density: float = AIR_DEN
     v_ms = velocity_kmh / 3.6
     return 0.5 * air_density * (v_ms ** 2)
 
+
 def calculate_aerodynamic_forces(cl: float, cd: float, dynamic_pressure: float, wing_area: float = REFERENCE_WING_AREA) -> tuple[float, float]:
     """
     Calculate dimensional Downforce (FL) and Drag (FD) in Newtons.
@@ -34,6 +37,7 @@ def calculate_aerodynamic_forces(cl: float, cd: float, dynamic_pressure: float, 
     downforce_n = dynamic_pressure * wing_area * cl
     drag_n = dynamic_pressure * wing_area * cd
     return downforce_n, drag_n
+
 
 def calculate_aerodynamic_efficiency(cl, cd, min_cd: float = 0.005):
     """
@@ -78,6 +82,7 @@ def calculate_linear_lift_slope(fine_grid: np.ndarray, cl_interp: np.ndarray) ->
         slope = 0.105
     return round(float(slope), 4)
 
+
 def calculate_stall_characteristics(fine_grid: np.ndarray, cl_interp: np.ndarray) -> tuple[float, float, int]:
     """
     Find critical stall angle (argmax CL) and maximum lift coefficient CL_max.
@@ -87,16 +92,17 @@ def calculate_stall_characteristics(fine_grid: np.ndarray, cl_interp: np.ndarray
     cl_max = round(float(cl_interp[stall_idx]), 3)
     return stall_aoa, cl_max, stall_idx
 
-def calculate_near_stall_angle(fine_grid: np.ndarray, cl_interp: np.ndarray, linear_slope: float, cl_max: float, stall_idx: int) -> float:
+
+def calculate_near_stall_angle(fine_grid: np.ndarray,cl_interp: np.ndarray,linear_slope: float,cl_max: float,stall_idx: int,slope_fraction: float = NEAR_STALL_SLOPE_FRACTION,cl_fraction: float = NEAR_STALL_CL_FRACTION) -> float:
     """
-    Identify near-stall inflection boundary where dCL/dAoA drops < 40% of linear slope
-    or CL reaches 95% of CL_max.
+    Identify near-stall inflection boundary where dCL/dAoA drops below
+    slope_fraction of linear slope, or CL reaches cl_fraction of CL_max.
     """
     zero_idx = np.argmin(np.abs(fine_grid - 0.0))
     dcl_da = np.gradient(cl_interp, fine_grid)
     near_stall_idx = stall_idx
     for i in range(zero_idx, stall_idx):
-        if dcl_da[i] < 0.4 * linear_slope or cl_interp[i] >= 0.95 * cl_max:
+        if dcl_da[i] < slope_fraction * linear_slope or cl_interp[i] >= cl_fraction * cl_max:
             near_stall_idx = i
             break
     return round(float(fine_grid[near_stall_idx]), 2)
