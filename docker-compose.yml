@@ -18,7 +18,7 @@ services:
     container_name: aerotwin-frontend
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.eu-north-1.amazonaws.com/aerotwin-frontend:latest
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "${FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
     restart: unless-stopped

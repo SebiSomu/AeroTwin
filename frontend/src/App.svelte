@@ -49,7 +49,7 @@
   // Health check
   onMount(() => {
     const checkHealth = () => {
-      fetch("http://localhost:5000/api/v1/health")
+      fetch("/api/v1/health")
         .then((res) => {
           if (!res.ok) throw new Error("Server error");
           return res.json();
@@ -86,7 +86,7 @@
     const currentAoA = angle;
     const currentVel = velocityKmh;
 
-    fetch("http://localhost:5000/api/v1/predict", {
+    fetch("/api/v1/predict", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -351,7 +351,7 @@
 
         <div class="relative w-full flex justify-center bg-[#0B0F14] rounded overflow-hidden">
           <img
-            src="http://localhost:5000/api/v1/chart?t={Date.now()}"
+            src="/api/v1/chart?t={Date.now()}"
             alt="Matplotlib Aerodynamic Telemetry Chart"
             class="max-w-full h-auto object-contain rounded border border-[#1F2B37]"
           />
