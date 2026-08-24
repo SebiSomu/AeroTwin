@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,7 +23,7 @@ NEAR_STALL_CL_FRACTION = 0.95     # fraction of CL_max that signals inflection o
 DATASETS_DIR = BASE_DIR.parent / "datasets"
 DEFAULT_DATASET_PATH = DATASETS_DIR / "naca0012_polars.csv"
 
-# Model Cache
+# Model Cache Paths
 MODEL_CACHE_DIR = BASE_DIR.parent / "cache"
 DEFAULT_MODEL_CACHE_PATH = MODEL_CACHE_DIR / "surrogate_model.joblib"
 MODEL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
