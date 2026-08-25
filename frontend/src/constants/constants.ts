@@ -15,7 +15,10 @@ export const DEFAULT_VELOCITY = 120;// km/h
 export const DEFAULT_CHORD_M = 0.30;// m
 export const KINEMATIC_VISCOSITY = 1.46e-5; // m^2/s
 
-export const MODEL_PATH = "/models/porsche_gt3rs_spoiler.glb";
+const CDN_BASE = (import.meta.env.VITE_CLOUDFRONT_URL || "").replace(/\/$/, "");
+export const MODEL_PATH = CDN_BASE
+  ? `${CDN_BASE}/models/porsche_gt3rs_spoiler.glb`
+  : "/models/porsche_gt3rs_spoiler.glb";
 export const MODEL_SCALE_FACTOR = 0.85;
 
 export const STREAMLINE_COUNT = 80;  // Number of streamlines to be generated in the flow visualization, affecting the density and clarity of the flow representation.

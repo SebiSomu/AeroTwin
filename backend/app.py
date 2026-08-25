@@ -1,10 +1,11 @@
 import os
 import time
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, redirect
 from flask_cors import CORS
 
 from ml_model import AerodynamicSurrogateModel
 from plotting import generate_or_load_aero_chart
+from s3_utils import is_s3_configured, get_cloudfront_url
 from physics_utils.constants import (
     AOA_MIN_DEG, AOA_MAX_DEG,
     DEFAULT_VELOCITY_KMH, DEFAULT_CHORD_M,
@@ -31,6 +32,8 @@ def health_check():
         "cl_max": round(surrogate_model.cl_max, 3),
         "linear_lift_slope": round(surrogate_model.linear_lift_slope, 4),
         "chart_available": os.path.exists(chart_path),
+        "s3_enabled": is_s3_configured(),
+        "cloudfront_chart_url": get_cloudfront_url("charts/aero_performance_polar.png") if is_s3_configured() else None,
     })
 
 @app.route("/api/v1/predict", methods=["POST"])
@@ -60,6 +63,11 @@ def predict_efficiency():
 
 @app.route("/api/v1/chart", methods=["GET"])
 def get_aero_chart():
+    if is_s3_configured():
+        cdn_url = get_cloudfront_url("charts/aero_performance_polar.png")
+        if cdn_url:
+            return redirect(cdn_url, code=302)
+
     if os.path.exists(chart_path):
         return send_file(chart_path, mimetype="image/png")
     return jsonify({"error": "Chart not generated"}), 404

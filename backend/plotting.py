@@ -13,6 +13,7 @@ from physics_utils.constants import (
     MODEL_CACHE_DIR,
 )
 from physics_utils.formulas import calculate_aerodynamic_efficiency, calculate_reynolds_number
+from s3_utils import upload_file_to_s3, get_cloudfront_url
 
 # Reynolds numbers and their approximate speeds for a 0.30 m chord (v = Re * nu / c)
 # Displayed on the chart for user context
@@ -178,4 +179,5 @@ def generate_or_load_aero_chart(model, cache_dir: str = None) -> str:
     plt.close(fig)
 
     print(f"[Plotting] Generated multi-Re aerodynamic graphic saved to {chart_path}")
+    upload_file_to_s3(chart_path, "charts/aero_performance_polar.png", content_type="image/png")
     return chart_path
