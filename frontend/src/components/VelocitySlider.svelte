@@ -19,10 +19,13 @@
 
   const majorTicks: readonly number[] = [50, 100, 150, 200, 250, 300, 350];
 
-  const minorTicks: number[] = [];
-  for (let t: number = min; t <= max; t += 25) {
-    minorTicks.push(t);
-  }
+  let minorTicks = $derived.by(() => {
+    const ticks: number[] = [];
+    for (let t = min; t <= max; t += 25) {
+      ticks.push(t);
+    }
+    return ticks;
+  });
 </script>
 
 <div class="relative h-11 w-[min(520px,82vw)]">

@@ -2,7 +2,13 @@
   import type { Status, Pivot } from "../types/types";
 
   export let angle: number = 0;
-  export let status: Status = { label: "", sub: "", color: "#7FA6B3", glow: "rgba(127,166,179,0.25)" };
+  export let velocityKmh: number = 120; // default
+  export let status: Status = {
+    label: "",
+    sub: "",
+    color: "#7FA6B3",
+    glow: "rgba(127,166,179,0.25)",
+  };
   export let pivot: Pivot = { x: 150, y: 100 };
 </script>
 
@@ -33,7 +39,7 @@
     fill="rgba(127,166,179,0.55)"
     font-family="'IBM Plex Mono', monospace"
   >
-    V∞
+    V∞ ({velocityKmh} km/h)
   </text>
   <g
     class="wing-group"

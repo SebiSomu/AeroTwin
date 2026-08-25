@@ -175,6 +175,7 @@
         {showForceVectors}
         downforceN={mlDownforceN}
         dragN={mlDragN}
+        {velocityKmh}
       />
 
       <!-- Angle panel — absolute so it never pushes the viewer off-centre -->
@@ -235,12 +236,7 @@
               >{mlRe !== null ? (mlRe >= 1000000 ? (mlRe / 1000000).toFixed(2) + 'M' : Math.round(mlRe / 1000) + 'k') : "685k"}</span
             >
           </div>
-          <div
-            class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
-          >
-            <span>Airspeed</span>
-            <span class="font-bold text-aero-text">{velocityKmh.toFixed(0)} km/h</span>
-          </div>
+
           <div
             class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
           >
@@ -336,7 +332,7 @@
           class="mt-1 overflow-hidden"
           style="width:186px; height:124px; transform:scale(0.62); transform-origin:left top;"
         >
-          <AirfoilDisplay {angle} status={mlStatus} {pivot} />
+          <AirfoilDisplay {angle} {velocityKmh} status={mlStatus} {pivot} />
         </div>
       </div>
     </div>

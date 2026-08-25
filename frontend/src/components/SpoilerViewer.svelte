@@ -26,11 +26,13 @@
     showForceVectors = false,
     downforceN = null,
     dragN = null,
+    velocityKmh = 120, // default value
   }: {
     angle?: number;
     showForceVectors?: boolean;
     downforceN?: number | null;
     dragN?: number | null;
+    velocityKmh?: number;
   } = $props();
   let container: HTMLDivElement;
   let canvas: HTMLCanvasElement;
@@ -236,8 +238,9 @@
     const loop = () => {
       animFrameId = requestAnimationFrame(loop);
       const delta = clock.getDelta();
-      flowTime += delta;
-      updateWindStreamlines(delta);
+      const speedMultiplier = Math.max(0.3, velocityKmh / 120.0);
+      flowTime += delta * speedMultiplier;
+      updateWindStreamlines(delta, speedMultiplier);
       if (showForceVectors) {
         updateForceVectors();
       }
@@ -441,7 +444,7 @@
     scene.add(particlePoints);
   }
 
-  function updateWindStreamlines(dt: number) {
+  function updateWindStreamlines(dt: number, speedMultiplier: number = 1.0) {
     if (!lineSegmentsMesh || seeds.length === 0) return;
 
     const radAoA = (currentAoA * Math.PI) / 180;
@@ -566,7 +569,9 @@
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const sId = particleStreamId[i];
-      let prog = particleProgress[i] + dt * (0.5 + seeds[sId].speedOffset);
+      let prog =
+        particleProgress[i] +
+        dt * speedMultiplier * (0.5 + seeds[sId].speedOffset);
       if (prog >= 1) {
         prog = 0;
         particleStreamId[i] = Math.floor(Math.random() * STREAMLINE_COUNT);
