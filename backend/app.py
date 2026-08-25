@@ -5,7 +5,11 @@ from flask_cors import CORS
 
 from ml_model import AerodynamicSurrogateModel
 from plotting import generate_or_load_aero_chart
-from physics_utils.constants import AOA_MIN_DEG, AOA_MAX_DEG, DEFAULT_VELOCITY_KMH
+from physics_utils.constants import (
+    AOA_MIN_DEG, AOA_MAX_DEG,
+    DEFAULT_VELOCITY_KMH, DEFAULT_CHORD_M,
+    VELOCITY_MIN_KMH, VELOCITY_MAX_KMH,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -41,7 +45,10 @@ def predict_efficiency():
         return jsonify({"error": "Invalid numerical parameters"}), 400
 
     if not (AOA_MIN_DEG <= angle_of_attack <= AOA_MAX_DEG):
-        return jsonify({"error": f"angle_of_attack must be between {AOA_MIN_DEG}° and {AOA_MAX_DEG}°"}), 400
+        return jsonify({"error": f"angle_of_attack must be between {AOA_MIN_DEG}\u00b0 and {AOA_MAX_DEG}\u00b0"}), 400
+
+    if not (VELOCITY_MIN_KMH <= velocity_kmh <= VELOCITY_MAX_KMH):
+        return jsonify({"error": f"velocity_kmh must be between {VELOCITY_MIN_KMH} and {VELOCITY_MAX_KMH} km/h"}), 400
 
     try:
         res = surrogate_model.predict(angle_of_attack, velocity_kmh)

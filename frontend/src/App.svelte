@@ -4,7 +4,8 @@
   import TitleBlock from "./components/TitleBlock.svelte";
   import AirfoilDisplay from "./components/AirfoilDisplay.svelte";
   import AngleSlider from "./components/AngleSlider.svelte";
-  import BottomLabel from "./components/BottomLabel.svelte";
+  import VelocitySlider from "./components/VelocitySlider.svelte";
+
   import SpoilerViewer from "./components/SpoilerViewer.svelte";
   import type { Status, Pivot } from "./types/types";
   import {
@@ -13,11 +14,15 @@
     STEP_AOA,
     DEFAULT_AOA,
     DEFAULT_PIVOT,
+    MIN_VELOCITY,
+    MAX_VELOCITY,
+    STEP_VELOCITY,
+    DEFAULT_VELOCITY,
   } from "./constants/constants";
   import { onMount } from "svelte";
 
   let angle = $state<number>(DEFAULT_AOA);
-  let velocityKmh = $state<number>(120);
+  let velocityKmh = $state<number>(DEFAULT_VELOCITY);
 
   // ML Prediction State
   let mlEfficiency = $state<number | null>(null);
@@ -25,6 +30,7 @@
   let mlCd = $state<number | null>(null);
   let mlDownforceN = $state<number | null>(null);
   let mlDragN = $state<number | null>(null);
+  let mlRe = $state<number | null>(null);
   let isApiOnline = $state<boolean>(false);
   let showForceVectors = $state<boolean>(false);
   let showChartModal = $state<boolean>(false);
@@ -73,6 +79,7 @@
       mlCd = null;
       mlDownforceN = null;
       mlDragN = null;
+      mlRe = null;
     }
 
     checkHealth();
@@ -81,7 +88,7 @@
     return () => clearInterval(interval);
   });
 
-  // Reactively fetch ML efficiency prediction whenever angle changes
+  // Reactively fetch ML efficiency prediction whenever angle or velocity changes
   $effect(() => {
     const currentAoA = angle;
     const currentVel = velocityKmh;
@@ -110,6 +117,7 @@
           mlCd = data.cd;
           mlDownforceN = data.downforce_n;
           mlDragN = data.drag_n;
+          mlRe = data.reynolds_number ?? Math.round((currentVel / 3.6) * 0.30 / 1.46e-5);
           isApiOnline = true;
           // Use server-provided status if available, else derive from AoA
           if (data.status && data.status.label) {
@@ -117,9 +125,9 @@
           } else {
             // Fallback: derive status client-side while server restarts
             const aoa = data.angle_of_attack ?? angle;
-            if (aoa >= 15) mlStatus = { label: "STALLED", sub: "Boundary layer separated", color: "#D9584F", glow: "rgba(217,88,79,0.35)" };
+            if (aoa >= 14.5) mlStatus = { label: "STALLED", sub: "Boundary layer separated", color: "#D9584F", glow: "rgba(217,88,79,0.35)" };
             else if (aoa >= 12) mlStatus = { label: "NEAR STALL", sub: "Approaching critical AoA", color: "#E0982E", glow: "rgba(224,152,46,0.3)" };
-            else if (aoa >= 3 && aoa <= 5) mlStatus = { label: "PEAK EFFICIENCY", sub: "Optimal CL / CD ratio", color: "#C9A15F", glow: "rgba(201,161,95,0.35)" };
+            else if (aoa >= 3 && aoa <= 5.5) mlStatus = { label: "PEAK EFFICIENCY", sub: "Optimal CL / CD ratio", color: "#C9A15F", glow: "rgba(201,161,95,0.35)" };
             else mlStatus = { label: "LINEAR REGION", sub: "Attached flow", color: "#7FA6B3", glow: "rgba(127,166,179,0.25)" };
           }
         } else {
@@ -134,31 +142,32 @@
         mlCd = null;
         mlDownforceN = null;
         mlDragN = null;
+        mlRe = null;
         mlStatus = FALLBACK_STATUS;
       });
   });
 </script>
 
 <div
-  class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-aero-bg font-mono text-aero-text"
+  class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-aero-bg font-mono text-aero-text py-4"
 >
   <AeroBackground />
   <CornerDecorations />
 
   <TitleBlock
     primary="AeroTwin&nbsp;Cloud"
-    secondary="Surrogate CFD · v1.0.0"
+    secondary="Multi-Re Surrogate CFD · v2.0"
     position="left"
   />
 
   <TitleBlock
-    primary="NACA&nbsp;0012 · GT3&nbsp;Rear&nbsp;Wing"
-    secondary="Profile Rev. 01"
+    primary="NACA&nbsp;0012 · Aerodynamic&nbsp;Polar"
+    secondary="Re = 200k – 2M · Multi-Param"
     position="right"
   />
 
   <!-- ── Main layout ───────────────────────────────────────────────── -->
-  <div class="z-2 flex flex-col items-center gap-3 px-4">
+  <div class="z-2 flex flex-col items-center gap-2 px-4 max-w-6xl w-full">
     <!-- Row 1: 3D viewer centred; angle panel absolutely floated right -->
     <div class="relative flex justify-center">
       <SpoilerViewer
@@ -171,10 +180,10 @@
       <!-- Angle panel — absolute so it never pushes the viewer off-centre -->
       <div
         class="
-        absolute -right-44 top-1/2 -translate-y-1/2
+        absolute -right-44 top-16
         flex w-40 flex-col items-start gap-1
         border-l border-aero-blue-25 pl-4
-        max-[820px]:static max-[820px]:translate-y-0
+        max-[820px]:static
         max-[820px]:border-l-0 max-[820px]:border-t max-[820px]:border-aero-blue-25
         max-[820px]:pt-3 max-[820px]:items-center max-[820px]:w-full
       "
@@ -189,7 +198,7 @@
         <!-- Big number -->
         <p
           class="font-display font-semibold leading-none tabular-nums transition-colors duration-250 ease-out"
-          style="font-size: clamp(40px, 5vw, 60px); color: {mlStatus.color};"
+          style="font-size: clamp(38px, 4.5vw, 56px); color: {mlStatus.color};"
         >
           {angle.toFixed(1)}°
         </p>
@@ -216,14 +225,28 @@
 
         <!-- ML Efficiency & Telemetry Box -->
         <div
-          class="mt-2.5 flex flex-col gap-1 border-t border-aero-blue-25 pt-2 w-full"
+          class="mt-2 flex flex-col gap-1 border-t border-aero-blue-25 pt-2 w-full"
         >
+          <div
+            class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
+          >
+            <span>Reynolds (Re)</span>
+            <span class="font-bold text-[#00E5FF]"
+              >{mlRe !== null ? (mlRe >= 1000000 ? (mlRe / 1000000).toFixed(2) + 'M' : Math.round(mlRe / 1000) + 'k') : "685k"}</span
+            >
+          </div>
+          <div
+            class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
+          >
+            <span>Airspeed</span>
+            <span class="font-bold text-aero-text">{velocityKmh.toFixed(0)} km/h</span>
+          </div>
           <div
             class="flex items-center justify-between text-[9px] uppercase tracking-[0.15em] text-aero-muted-4"
           >
             <span>Efficiency (L/D)</span>
             <span class="font-bold text-aero-text"
-              >{mlEfficiency !== null ? mlEfficiency.toFixed(1) : "30.4"}</span
+              >{mlEfficiency !== null ? mlEfficiency.toFixed(1) : "—"}</span
             >
           </div>
           <div
@@ -231,7 +254,7 @@
           >
             <span>Downforce / Drag</span>
             <span class="font-bold text-aero-text"
-              >{mlDownforceN !== null ? mlDownforceN.toFixed(0) : "164"}N / {mlDragN !== null ? mlDragN.toFixed(0) : "5"}N</span
+              >{mlDownforceN !== null ? mlDownforceN.toFixed(0) : "—"}N / {mlDragN !== null ? mlDragN.toFixed(0) : "—"}N</span
             >
           </div>
           <div
@@ -239,7 +262,7 @@
           >
             <span>CL / CD Coeff</span>
             <span class="font-bold text-aero-text"
-              >{mlCl !== null ? mlCl.toFixed(2) : "0.53"} / {mlCd !== null ? mlCd.toFixed(3) : "0.015"}</span
+              >{mlCl !== null ? mlCl.toFixed(2) : "—"} / {mlCd !== null ? mlCd.toFixed(3) : "—"}</span
             >
           </div>
           <div
@@ -254,13 +277,13 @@
               class={isApiOnline
                 ? "text-emerald-700 font-semibold"
                 : "text-aero-muted-4"}
-              >{isApiOnline ? "SERVER RUNNING" : "SERVER OFFLINE"}</span
+              >{isApiOnline ? "SURROGATE ONLINE" : "SERVER OFFLINE"}</span
             >
           </div>
 
           <!-- Optional 3D Aero Force Vectors Toggle -->
           <div
-            class="mt-1.5 flex flex-col gap-1 w-full border-t border-aero-blue-25 pt-1.5"
+            class="mt-1 flex flex-col gap-1 w-full border-t border-aero-blue-25 pt-1"
           >
             <label
               class="flex items-center gap-1.5 cursor-pointer select-none text-[8px] uppercase tracking-[0.14em] text-aero-muted-4 hover:text-aero-text transition-colors"
@@ -302,15 +325,15 @@
           <!-- Matplotlib Aerodynamic Diagnostic Plot Trigger Button -->
           <button
             onclick={() => (showChartModal = true)}
-            class="mt-2 flex items-center justify-center gap-1.5 w-full py-1 px-2 border border-[#00E5FF]/40 rounded bg-[#00E5FF]/10 text-[8px] font-mono uppercase tracking-[0.14em] text-[#00E5FF] hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] transition-all cursor-pointer select-none"
+            class="mt-1.5 flex items-center justify-center gap-1.5 w-full py-1 px-2 border border-[#00E5FF]/40 rounded bg-[#00E5FF]/10 text-[8px] font-mono uppercase tracking-[0.14em] text-[#00E5FF] hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] transition-all cursor-pointer select-none"
           >
-            <span>Aero Polars & Surrogate Plot</span>
+            <span>Multi-Re Polar Telemetry</span>
           </button>
         </div>
 
         <!-- Mini airfoil — scaled down, clipped -->
         <div
-          class="mt-2 overflow-hidden"
+          class="mt-1 overflow-hidden"
           style="width:186px; height:124px; transform:scale(0.62); transform-origin:left top;"
         >
           <AirfoilDisplay {angle} status={mlStatus} {pivot} />
@@ -318,13 +341,29 @@
       </div>
     </div>
 
-    <!-- Row 2: slider, aligned to viewer width -->
-    <div class="w-[min(520px,82vw)] px-0.5">
-      <AngleSlider bind:angle {min} {max} {step} {percent} status={mlStatus} />
+    <!-- Controls Row: Dual Sliders for AoA & Velocity/Re -->
+    <div class="flex flex-col gap-2 w-[min(520px,82vw)] px-0.5 mt-3">
+      <!-- AoA Slider -->
+      <div>
+        <div class="flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.15em] text-aero-muted-4 mb-1">
+          <span>Angle of Attack (α)</span>
+          <span class="font-bold" style="color: {mlStatus.color};">{angle.toFixed(1)}°</span>
+        </div>
+        <AngleSlider bind:angle {min} {max} {step} {percent} status={mlStatus} />
+      </div>
+
+      <!-- Velocity / Reynolds Slider -->
+      <div class="mt-1">
+        <div class="flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.15em] text-aero-muted-4 mb-1">
+          <span>Airspeed &amp; Reynolds (V / Re)</span>
+          <span class="font-bold text-[#00E5FF]">{velocityKmh.toFixed(0)} km/h <span class="text-aero-muted-4 text-[8px]">({mlRe ? (mlRe >= 1000000 ? (mlRe / 1000000).toFixed(2) + 'M' : Math.round(mlRe / 1000) + 'k') : '—'})</span></span>
+        </div>
+        <VelocitySlider bind:velocity={velocityKmh} />
+      </div>
     </div>
   </div>
 
-  <BottomLabel text="AoA Control · Module 01" />
+
 
   <!-- Matplotlib Chart Modal Overlay -->
   {#if showChartModal}
@@ -338,7 +377,7 @@
           <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-[#00E5FF] shadow-[0_0_8px_#00E5FF]"></span>
             <h3 class="font-mono text-xs uppercase tracking-widest text-[#00E5FF] font-bold">
-              Aerodynamic Diagnostic Telemetry
+              Multi-Reynolds Polar Telemetry &amp; Surrogate Validation
             </h3>
           </div>
           <button
@@ -360,4 +399,3 @@
     </div>
   {/if}
 </div>
-

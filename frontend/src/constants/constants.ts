@@ -8,6 +8,13 @@ export const STEP_AOA = 0.1;  // Step size for angle of attack in degrees, used 
 export const DEFAULT_AOA = 4;
 export const DEFAULT_PIVOT = { x: 150, y: 100 };
 
+export const MIN_VELOCITY = 50;     // km/h
+export const MAX_VELOCITY = 350;    // km/h
+export const STEP_VELOCITY = 1;     // km/h
+export const DEFAULT_VELOCITY = 120;// km/h
+export const DEFAULT_CHORD_M = 0.30;// m
+export const KINEMATIC_VISCOSITY = 1.46e-5; // m^2/s
+
 export const MODEL_PATH = "/models/porsche_gt3rs_spoiler.glb";
 export const MODEL_SCALE_FACTOR = 0.85;
 

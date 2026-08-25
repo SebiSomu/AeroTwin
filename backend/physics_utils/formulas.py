@@ -6,6 +6,8 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 import numpy as np
 from physics_utils.constants import (
     AIR_DENSITY,
+    KINEMATIC_VISCOSITY,
+    DEFAULT_CHORD_M,
     PEAK_EFFICIENCY_BAND_FRACTION,
     NEAR_STALL_SLOPE_FRACTION,
     NEAR_STALL_CL_FRACTION
@@ -26,6 +28,20 @@ def calculate_dynamic_pressure(velocity_kmh: float, air_density: float = AIR_DEN
     """
     v_ms = velocity_kmh / 3.6
     return 0.5 * air_density * (v_ms ** 2)
+
+
+def calculate_reynolds_number(velocity_kmh: float, chord_m: float = DEFAULT_CHORD_M, kinematic_viscosity: float = KINEMATIC_VISCOSITY) -> float:
+    """
+    Calculate the chord-based Reynolds number Re = V * c / nu.
+
+    Re governs the boundary-layer transition regime:
+      Re < ~300k  : laminar separation dominant (low speed / short chord)
+      Re ~ 500k   : transitional (typical road car at 100 km/h)
+      Re ~ 1M     : mostly turbulent (race car at 200 km/h)
+      Re > 2M     : fully turbulent (high-speed racing)
+    """
+    v_ms = velocity_kmh / 3.6
+    return v_ms * chord_m / kinematic_viscosity
 
 
 def calculate_aerodynamic_forces(cl: float, cd: float, dynamic_pressure: float, wing_area: float = REFERENCE_WING_AREA) -> tuple[float, float]:

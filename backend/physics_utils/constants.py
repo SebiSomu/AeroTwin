@@ -3,10 +3,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 # Aerodynamic Physical Constants
-AIR_DENSITY = 1.225   # kg/m^3 (sea level standard air density)
+AIR_DENSITY = 1.225  # kg/m^3 (sea level standard air density)
+KINEMATIC_VISCOSITY = 1.46e-5  # m^2/s  (air at 15 °C, sea level ISA)
 
 # Operational & Threshold Defaults
 DEFAULT_VELOCITY_KMH = 120.0  # km/h (default vehicle speed for calculations)
+VELOCITY_MIN_KMH = 50.0  # km/h (minimum velocity for user slider)
+VELOCITY_MAX_KMH = 350.0  # km/h (maximum velocity for user slider)
+DEFAULT_CHORD_M = 0.30  # m    (generic rear-wing chord length)
 AOA_MIN_DEG = -5.0  # degrees (minimum angle of attack for analysis)
 AOA_MAX_DEG = 20.0  # degrees (maximum angle of attack for analysis)
 STALL_AOA_THRESHOLD_DEG = 15.0  # degrees (stall angle of attack threshold)
@@ -16,12 +20,13 @@ PEAK_EFFICIENCY_AOA_MAX = 5.0  # degrees (maximum angle of attack for peak effic
 PEAK_EFFICIENCY_BAND_FRACTION = 0.95  # fraction (bandwidth for peak efficiency)
 
 # Near-Stall Detection Sensitivity
-NEAR_STALL_SLOPE_FRACTION = 0.4   # fraction of linear lift slope that signals inflection onset
-NEAR_STALL_CL_FRACTION = 0.95     # fraction of CL_max that signals inflection onset
+NEAR_STALL_SLOPE_FRACTION = 0.4  # fraction of linear lift slope that signals inflection onset
+NEAR_STALL_CL_FRACTION = 0.95  # fraction of CL_max that signals inflection onset
 
 # Dataset & File Paths
 DATASETS_DIR = BASE_DIR.parent / "datasets"
-DEFAULT_DATASET_PATH = DATASETS_DIR / "naca0012_polars.csv"
+DEFAULT_DATASET_PATH = DATASETS_DIR / "naca0012_multi_re_polars.csv"  # multi-Re (AoA + Re)
+LEGACY_DATASET_PATH = DATASETS_DIR / "naca0012_polars.csv"  # original single-Re
 
 # Model Cache Paths
 MODEL_CACHE_DIR = BASE_DIR.parent / "cache"
