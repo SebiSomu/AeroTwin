@@ -26,7 +26,6 @@ NEAR_STALL_CL_FRACTION = 0.95  # fraction of CL_max that signals inflection onse
 # Dataset & File Paths
 DATASETS_DIR = BASE_DIR.parent / "datasets"
 DEFAULT_DATASET_PATH = DATASETS_DIR / "naca0012_multi_re_polars.csv"  # multi-Re (AoA + Re)
-LEGACY_DATASET_PATH = DATASETS_DIR / "naca0012_polars.csv"  # original single-Re
 
 # Model Cache Paths
 MODEL_CACHE_DIR = BASE_DIR.parent / "cache"
