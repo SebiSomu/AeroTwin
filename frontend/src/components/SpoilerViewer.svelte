@@ -569,11 +569,9 @@
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const sId = particleStreamId[i];
-      let prog =
-        particleProgress[i] +
-        dt * speedMultiplier * (0.5 + seeds[sId].speedOffset);
-      if (prog >= 1) {
-        prog = 0;
+      let prog = particleProgress[i] - dt * speedMultiplier * (0.5 + seeds[sId].speedOffset);
+      if (prog < 0) {
+        prog = 1;
         particleStreamId[i] = Math.floor(Math.random() * STREAMLINE_COUNT);
       }
       particleProgress[i] = prog;
