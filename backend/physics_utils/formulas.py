@@ -67,7 +67,8 @@ def calculate_aerodynamic_efficiency(cl, cd, min_cd: float = 0.005):
 
 def calculate_prandtl_3d_correction(cl_2d, cd_2d, linear_lift_slope_deg: float, aspect_ratio: float = WING_ASPECT_RATIO, oswald_efficiency: float = WING_OSWALD_EFFICIENCY) -> tuple:
     """
-    Apply Prandtl lifting-line finite-wing correction to 2D section coefficients.
+    Apply Prandtl lifting-line finite-wing correction to 2D section coefficients 
+    for downwash edge case.
     Works on scalars or numpy arrays.
 
     CL_3D = CL_2D / (1 + a0 / (pi * AR * e))
