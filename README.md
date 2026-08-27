@@ -1,6 +1,6 @@
-# AeroTwin Cloud
+# AeroTwin
 
-AeroTwin Cloud is an interactive aerodynamic analysis application for automotive rear wings and spoilers. It uses a machine-learning surrogate model trained on NACA 0012 aerodynamic polar data to provide fast predictions without running a full CFD simulation for every input.
+AeroTwin is an interactive aerodynamic analysis application for automotive rear wings and spoilers. It uses a machine-learning surrogate model trained on NACA 0012 aerodynamic polar data to provide instant predictions without running full CFD simulations for every input.
 
 ## Screenshots
 
