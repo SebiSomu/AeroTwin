@@ -1,6 +1,6 @@
 # AeroTwin
 
-AeroTwin is an interactive aerodynamic analysis application for automotive rear wings and spoilers. It uses a machine-learning surrogate model trained on NACA 0012 aerodynamic polar data to provide instant predictions without running full CFD simulations for every input.
+AeroTwin is an interactive aerodynamic analysis application for automotive rear wings and spoilers, developed for the final assignment of Summer School 2026 by Siemens Digital Industries Software. It uses a machine-learning surrogate model trained on NACA 0012 aerodynamic polar data to provide instant predictions without running full CFD simulations for every input.
 
 ## Screenshots
 
@@ -18,14 +18,6 @@ Replace these image paths with the final screenshots when they are available.
 - Flow-state feedback for linear flow, peak efficiency, near stall, and stall conditions.
 - Reynolds-number-aware predictions across multiple operating conditions.
 - REST API for health checks, predictions, and aerodynamic performance charts.
-
-## Access
-
-The deployed application is available at:
-
-**https://d2rfpqd9gvdxlp.cloudfront.net/**
-
-The CloudFront URL is a public application endpoint. The application can also be run locally.
 
 ## Run Locally
 
